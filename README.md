@@ -1,12 +1,12 @@
 <div align="center">
-  <h1 align="center">CSI-Pictionary</h1>
+  <h1>CSI-Pictionary</h1>
 </div>
 
 <div align="center" style="color: #6f7371">
-  <i><strong>Online pictionary game for Codespace 2020</strong></i><br><br>
+  <i>Online pictionary game for Codespace 2020</i><br><br>
 </div>
 
-<p align="center">
+<div align="center">
 
 <a href="https://www.atlassian.com/git/tutorials/what-is-git">
     <img src="https://forthebadge.com/images/badges/uses-git.svg" alt="HTML">
@@ -24,7 +24,7 @@
     <img src="https://forthebadge.com/images/badges/built-with-love.svg" alt="Javascript">
 </a>
 
-</p>
+</div>
 
 `CSI-Pictionary` is an online pictionary platform. Here people would e joining rooms (only 1 room for now), and the game would begin by selecting a participant at random, who will be given an option to select a word from set of 3 words. After choosing this, he may start drawing, given 80 secs per drawing. <br><br>
 Other participants would be looking at the board on their screen in realtime. They have to guess the word being drawn. Points will be awarded on first right answer basis. <br><br>
@@ -56,19 +56,19 @@ Built using expressJS, socketio and mongoose
 ## [Game Flow](#gameflow)
 Sr. No |  Description
 -------|-----------------------------------------------------
-1.     |  `x` minutes wait time for people to join the room.
-2.     |  Commence the game, by selecting a participant at random
-3.     |  Give the drawer option to choose from 3 words.
-4.     |  After selection, give him blank drawboard. With colors and other tools to beautify his drawing
-5.     |  Present to the user the size of words, like _ _ _ _
-6.     |  As the user draws, update all clients screens.
-7.     |  Mark the user as done, if he guesses the object.
-8.     |  Stop the drawing on time limit. Show em the scores
-9.     |  4 seconds interval, then next participant selected to draw.
-10.    |  At the end of round1, show em scores. Start round2 after 20 seconds.
-11.    |  After end of all three rounds(end of match), display the scores and restart the game resetting the socres for that match (0 all)
-12.    |  Store the scores per match for all the participants in their profile.
-13.    |  Ability to exit the game in between, won't harm their scores. Thier current score should be added to their account on quitting.
+1      |  `x` minutes wait time for people to join the room.
+2      |  Commence the game, by selecting a participant at random
+3      |  Give the drawer option to choose from 3 words.
+4      |  After selection, give him blank drawboard. With colors and other tools to beautify his drawing
+5      |  Present to the user the size of words, like _ _ _ _
+6      |  As the user draws, update all clients screens.
+7      |  Mark the user as done, if he guesses the object.
+8      |  Stop the drawing on time limit. Show em the scores
+9      |  4 seconds interval, then next participant selected to draw.
+10     |  At the end of round1, show em scores. Start round2 after 20 seconds.
+11     |  After end of all three rounds(end of match), display the scores and restart the game resetting the socres for that match (0 all)
+12     |  Store the scores per match for all the participants in their profile.
+13     |  Ability to exit the game in between, won't harm their scores. Thier current score should be added to their account on quitting.
 
 
 ## [Routes](#routes)
