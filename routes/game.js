@@ -1,17 +1,19 @@
 const express = require("express");
-const http = require("http").createServer(express);
-const io = require("socket.io")(http);
+const server = require("http").createServer().listen(3000);
+const io = require("socket.io")(server, {
+	path: "/game",
+});
 
 const logger = require("../tools/loggers");
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-	res.send("Working");
+	res.render("index");
 });
 
-io.on("connection", (socket) => {
-	logger.info("User connected");
+io.on("connection", (client) => {
+	logger.logger.info("User connected");
 });
 
 module.exports = router;
