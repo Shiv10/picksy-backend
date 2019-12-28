@@ -51,11 +51,9 @@
         }
     </style>
 </head>
-<script src="socket.io.js"></script>
+<script src="/socket.io.js"></script>
 <script>
-    var socket = io.connect({ 
-        path: 'http://localhost:3000/game',
-    });
+    var socket = io.connect();
 </script>
 
 <body>

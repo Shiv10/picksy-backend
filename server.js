@@ -8,7 +8,9 @@ const bodyparser = require("body-parser");
 const { logger } = require("./tools/loggers");
 const gameRouter = require("./routes/game");
 
-const app = express();
+const app = require("express")();
+const server = require("http").createServer(app);
+const io = require("socket.io")(server);
 const port = process.env.PORT || 3000;
 
 if (!process.env.JWT_SECRET) {
@@ -26,7 +28,14 @@ app.use(
 	bodyparser.json(),
 );
 
-app.listen(port, () => {
+//Socket stuff
+io.on('connection', client => {
+	logger.info('Client Connected');
+	client.on('event', data => { logger.info('Some event happend'); });
+	client.on('disconnect', () => { logger.info('Client disconnected'); });
+});
+
+server.listen(port, () => {
 	logger.info(`Express server started at port: ${port}`);
 });
 
