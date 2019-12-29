@@ -34,7 +34,7 @@ Built using expressJS, socketio and mongoose
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
 - [Game Flow](#game-flow)
-- [Routes](#routes)
+- [Socket Actions](#functions)
 - [JS modules/actions](#js-modulesactions)
 - [Contribution](#contribution)
 - [Tutorials](#tutorials)
@@ -71,8 +71,26 @@ Sr. No |  Description
 13     |  Ability to exit the game in between, won't harm their scores. Thier current score should be added to their account on quitting.
 
 
-## [Routes](#routes)
-> TBD
+## [Socket Actions](#functions)
+Function                |   Description
+------------------------|------------------------------------------
+playerRoomJoin          |
+startNewMatch           |
+startNewRound           |
+chatMessage             |
+broadcastChatHistory    |
+startDrawingTimer       |
+broadcastTimer          |
+givePoints              |
+mouseMovement           |
+broadcastNewColor       |
+broadcastNewThickness   |
+resetCanvas             |
+updateTurn              |
+playerLeft              |
+endRound                |
+endMatch                |
+
 
 ## [JS modules/actions](#actions)
 Files               |   Description
