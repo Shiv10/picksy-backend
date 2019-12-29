@@ -91,6 +91,15 @@ playerLeft              |
 endRound                |
 endMatch                |
 
+Example:
+```
+const playerJoinRoom = (data) => {
+	const { gameID } = data;
+	data.mySocketID = this.id;
+	this.join(gameID.toString());
+	this.in(gameID).emit("playerJoinedRoom", data);
+};
+```
 
 ## [JS modules/actions](#actions)
 Files               |   Description
