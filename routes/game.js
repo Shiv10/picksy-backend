@@ -1,4 +1,5 @@
-let io;
+const { logger } = require("../tools/loggers");
+
 let gameSocket;
 const rooms = {};
 let words = [];
@@ -90,20 +91,21 @@ function clearCurrentCanvas(data) {
 function playerLeft(data, userInformation) {
 	io.sockets.in(data).emit("userHasLeft", userInformation);
 }
-function endGameLobby(data) {
+const endGameLobby = (data) => {
 	io.sockets.in(data).emit("gameEndedLobby");
-}
+};
 
-const initGame = (sio, socket, wordList) => {
+const initGame = (socket, wordList) => {
 	// client --> server --> clients (chat message from client)
-	io = sio;
 	gameSocket = socket;
 	words = wordList;
+
 	gameSocket.emit("connected", { message: "You are connected!" });
+
 	// Host Events
-	gameSocket.on("createNewMatch", startNewGame);
+	gameSocket.on("startNewMatch", startNewMatch);
 	gameSocket.on("createNewRound", createNewRound);
-	gameSocket.on("playerJoinGame", playerJoinGame);
+	gameSocket.on("playerJoinRoom", playerJoinRoom);
 	gameSocket.on("updatePlayerPlayersServer", updatePlayerPlayersServer);
 	gameSocket.on("chatMessage", chatMessage);
 	gameSocket.on("startGame", startGame);
@@ -122,4 +124,8 @@ const initGame = (sio, socket, wordList) => {
 	gameSocket.on("endGameLobby", endGameLobby);
 };
 
-export default initGame;
+const gameRouter = (io) => {
+	logger.info(io);
+};
+
+module.exports = { gameRouter };

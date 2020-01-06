@@ -2,16 +2,19 @@ require("dotenv").config();
 require("./models/db");
 
 const express = require("express");
-const path = require("path");
 const bodyparser = require("body-parser");
-const app = require("express")();
-const server = require("http").createServer(app);
-const io = require("socket.io")(server);
+
+const app = express();
+const server = require("http").Server(app);
+const io = require("socket.io")(server, {
+	// origins: ["http://localhost:3002", "http://localhost:3001"],
+});
 
 const { logger } = require("./tools/loggers");
-const gameRouter = require("./routes/game");
+// logger.info(require("./routes/game"));
+const gameRouter = require("./routes/game").gameRouter(io);
 
-const port = process.env.PORT || 3000;
+const port = parseInt(process.env.PORT, 10) || 3000;
 
 if (!process.env.JWT_SECRET) {
 	logger.error("Fatal Error: JWT_SECRET not defined");
@@ -19,8 +22,8 @@ if (!process.env.JWT_SECRET) {
 }
 
 app.set("view engine", "ejs");
-app.use(express.static(path.join(__dirname, "public")));
-app.set("views", "./views");
+app.set("views", `${__dirname}/views`);
+app.use("/static", express.static("static"));
 app.use(
 	bodyparser.urlencoded({
 		extended: true,
@@ -28,19 +31,26 @@ app.use(
 	bodyparser.json(),
 );
 
-// Socket stuff
-io.on("connection", (client) => {
-	logger.info("Client Connected");
-
-	require("pathToSocketRoutesFile1")(client);
-	require("pathToSocketRoutesFile2")(client);
-	require("pathToSocketRoutesFileN")(client);
-
-	return io;
+app.get("/", (req, res) => {
+	res.render("index");
 });
 
-server.listen(port, () => {
+io.sockets.on("connection", (socket) => {
+	logger.info("Client connected");
+
+	// initGame(io, socket, ["adv", "sss", "hello"]);
+
+	socket.on("connected", (data) => {
+		// listen to event at anytime (not only when endpoint is called)
+		// execute some code here
+		logger.info("Inside socket connected");
+	});
+});
+
+app.listen(port, () => {
 	logger.info(`Express server started at port: ${port}`);
 });
 
-app.use("/game", gameRouter);
+server.listen(port + 1, () => {
+	logger.info(`Sockets server started at port: ${port + 1}`);
+});
