@@ -1,21 +1,22 @@
 window.addEventListener("load", () => {
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
-	const socket = io('http://localhost:3002');
+	// eslint-disable-next-line no-undef
+	const socket = io("http://localhost:3002");
 	const name = prompt("Enter your name!");
-	users = {};
+	const users = {};
 
 	const messageCon = document.getElementById("message-container");
 	const btn = document.getElementById("send-button");
 	const msg = document.getElementById("message-input");
-
-	btn.addEventListener("click", send);
 
 	function send() {
 		socket.emit("message", { text: msg.value });
 		msg.innerHTML = "";
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
 	}
+
+	btn.addEventListener("click", send);
 
 	socket.on("message", (data) => {
 		messageCon.innerHTML += `<strong>${data.name}</strong>: ${data.text}<br>`;
@@ -27,17 +28,6 @@ window.addEventListener("load", () => {
 	canvas.width = 500;
 
 	let painting = false;
-
-	function startPosition(e) {
-		painting = true;
-		draw(e);
-	}
-
-	function finishedPosition() {
-		painting = false;
-		ctx.beginPath();
-		socket.emit("stop");
-	}
 
 	function draw(e) {
 		if (!painting) return;
@@ -51,6 +41,17 @@ window.addEventListener("load", () => {
 		ctx.moveTo(e.clientX, e.clientY);
 
 		socket.emit("draw", { x: e.clientX, y: e.clientY });
+	}
+
+	function startPosition(e) {
+		painting = true;
+		draw(e);
+	}
+
+	function finishedPosition() {
+		painting = false;
+		ctx.beginPath();
+		socket.emit("stop");
 	}
 
 	socket.on("draw", (data) => {

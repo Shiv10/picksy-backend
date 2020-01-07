@@ -6,13 +6,9 @@ const bodyparser = require("body-parser");
 
 const app = express();
 const server = require("http").Server(app);
-const io = require("socket.io")(server, {
-	// origins: ["http://localhost:3002", "http://localhost:3001"],
-});
+const io = require("./routes/game").listen(server);
 
 const { logger } = require("./tools/loggers");
-// logger.info(require("./routes/game"));
-const gameRouter = require("./routes/game").gameRouter(io);
 
 const port = parseInt(process.env.PORT, 10) || 3000;
 
@@ -33,18 +29,6 @@ app.use(
 
 app.get("/", (req, res) => {
 	res.render("index");
-});
-
-io.sockets.on("connection", (socket) => {
-	logger.info("Client connected");
-
-	// initGame(io, socket, ["adv", "sss", "hello"]);
-
-	socket.on("connected", (data) => {
-		// listen to event at anytime (not only when endpoint is called)
-		// execute some code here
-		logger.info("Inside socket connected");
-	});
 });
 
 app.listen(port, () => {
