@@ -1,0 +1,26 @@
+#draw{
+  border: 2px solid black;
+  float: left;
+  margin-left: 0.2em;
+  height: 500px;
+  width: 500px;
+}
+
+#chat{
+  border: 2px solid black;
+  float: right;
+  margin-right: 0.2em;
+  width: 300px;
+  height: 550px;
+}
+
+.demo div {
+  text-align: left;
+  margin-left: 0.3em;
+  clear: none; 
+}
+
+.txt{
+  width: 100%;
+  height: 92%;
+}
