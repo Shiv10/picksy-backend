@@ -1,7 +1,7 @@
 window.addEventListener("load", () => {
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
-	const socket = io('http://localhost:3002');
+	const socket = io(window.loca);
 	const name = prompt("Enter your name!");
 	users = {};
 
