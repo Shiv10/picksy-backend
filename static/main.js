@@ -12,8 +12,8 @@ window.addEventListener("load", () => {
 
 	function send() {
 		socket.emit("message", { text: msg.value });
-		msg.innerHTML = "";
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
+		msg.value = "";
 	}
 
 	btn.addEventListener("click", send);
