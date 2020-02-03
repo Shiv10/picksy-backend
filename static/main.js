@@ -9,11 +9,12 @@ window.addEventListener("load", () => {
 	const messageCon = document.getElementById("message-container");
 	const btn = document.getElementById("send-button");
 	const msg = document.getElementById("message-input");
+	const f=0;
+	console.log(f);
 
 	function send() {
 		socket.emit("message", { text: msg.value });
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
-		msg.value = "";
 	}
 
 	btn.addEventListener("click", send);
@@ -71,4 +72,48 @@ window.addEventListener("load", () => {
 	canvas.addEventListener("mousedown", startPosition);
 	canvas.addEventListener("mouseup", finishedPosition);
 	canvas.addEventListener("mousemove", draw);
+
+	timer = document.getElementById("timer");
+	count = 80;
+	countdown = 4;
+
+	function startGame(data){
+		t= setInterval(timed,1000);
+		function timed(){
+			if(countdown==4){
+				timer.innerHTML = data.name + " is drawing."
+				countdown --;
+			}
+			else if(countdown>0){
+				timer.innerHTML = "Game will begin in "+ countdown;
+				countdown--;
+			}
+			else if(countdown==0){
+				timer.innerHTML = "Begin Game";
+				countdown--;
+			}
+			else{
+				timer.innerHTML = count;
+				count --;
+				if(count==0){
+					timer.innerHTML= "Game over";
+					clearInterval(t);
+				}
+			}
+		}
+		console.log(data.word);
+		btn.addEventListener("click",()=>{
+			if(msg.value==data.word){
+				messageCon.innerHTML += `<p style="color:green">`+name +` guessed the word correctly</p><br>`;
+				socket.emit("matched",{name:name});
+			}
+			msg.value = "";
+		});
+
+	}//start game function
+	socket.on("start",startGame);
+
+	socket.on("matched",(data)=>{
+		messageCon.innerHTML += `<p style="color:green">`+data.name +` guessed the word correctly</p><br>`;
+	});
 });
