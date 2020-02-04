@@ -74,22 +74,28 @@ Sr. No |  Description
 ## [Socket Actions](#functions)
 Function                |   Description
 ------------------------|------------------------------------------
-playerRoomJoin          |
-startNewMatch           |
-startNewRound           |
-chatMessage             |
-broadcastChatHistory    |
-startDrawingTimer       |
-broadcastTimer          |
-givePoints              |
-mouseMovement           |
-broadcastNewColor       |
-broadcastNewThickness   |
-resetCanvas             |
-updateTurn              |
-playerLeft              |
-endRound                |
-endMatch                |
+playerRoomJoin   (S)       |Adds users to drawStack and users object. Check if room has more than 2 peeps. Also, If yes and matchStarted == False, then emit startNewMatch.
+startNewMatch  (S) |        Set the currentRound to 0, matchStarted to True, set all users points to zero. , emit startNewRound
+startNewRound (S)          |  Shuffle drawStack, Increment the current round +1. Run update turn.
+updateTurn    (F)          |  Pop off the latest from drawStack. Update currentDrawer. If nothing to pop off, then call endRound
+wordSelection (S)           |  send words to currentDrawer
+wordSelected(C)         | Update currentWord, start 80 second (setTimeout) for game on server, emit gameStart
+gameStart(S)            | Broadcast to all users, also send timestamp of when the game started. On client side, start timers from (80 - (Date.now()-tStamp)) 
+userGuessed(S)          | Inform all users that persom has guessed the word
+gameEnd(S)              | Runs on the end of the 80 second timer on server. Send usersGuessed array (with points) to all users
+clear(C)                | Check if from currentDrawer, emit broadcastClear
+broadcastClear(S)       | Push to canvas state, broadcast to all users
+draw(C)                 | Check if from currentDrawer, emit broadcastDraw
+broadcastDraw(S)        | Push to canvas state, broadcast to all users
+newColor(C)             | Sent by person drawing, emit broadcastNewColor
+newThickness(C)         | Sent by person drawing, emit broadcastNewThickness
+broadcastNewColor(S)     |  Push to canvas state, broadcast to all users
+broadcastNewThickness(S) |  Push to canvas state, broadcast to all users
+chatMessage(C)             | Check if guess is right. If yes, append username and constant points (as object) to usersGuessed, and then broadcast userGuessed. If its not correct, them emitBroadcastChatMessage. If all the users have guessed, run gameEnd
+broadcastChatMessage(S)   | Send message to all users
+playerLeft              | Remove from users, if the person who left is == currentDrawer, run gameEnd
+endRound                | call StartNewRound. If currentRound == maxRounds then run endMatch
+endMatch                | call startNewMatch
 
 Example:
 ```
