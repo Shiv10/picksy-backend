@@ -4,15 +4,18 @@ window.addEventListener("load", () => {
 	// eslint-disable-next-line no-undef
 	const socket = io("http://localhost:3002");
 	const name = prompt("Enter your name!");
-	const users = {};
+
 
 	const messageCon = document.getElementById("message-container");
 	const btn = document.getElementById("send-button");
 	const msg = document.getElementById("message-input");
-	const f=0;
-	console.log(f);
+	canDraw = false;
+	chat = true;
+
+	socket.emit("new user", name);
 
 	function send() {
+		if(msg.value=="")return;
 		socket.emit("message", { text: msg.value });
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
 	}
@@ -23,8 +26,8 @@ window.addEventListener("load", () => {
 		messageCon.innerHTML += `<strong>${data.name}</strong>: ${data.text}<br>`;
 	});
 
-	socket.emit("new user", name);
-
+	
+	//Drawing fucntionality started
 	canvas.height = 500;
 	canvas.width = 500;
 
@@ -32,6 +35,7 @@ window.addEventListener("load", () => {
 
 	function draw(e) {
 		if (!painting) return;
+		if(!canDraw) return;
 
 		ctx.lineWidth = 5;
 		ctx.lineCap = "round";
@@ -73,47 +77,77 @@ window.addEventListener("load", () => {
 	canvas.addEventListener("mouseup", finishedPosition);
 	canvas.addEventListener("mousemove", draw);
 
-	timer = document.getElementById("timer");
-	count = 80;
-	countdown = 4;
+	const clrbtn = document.getElementById("clear-canvas");
+	clrbtn.addEventListener("click",clearCanvas);
+	function clearCanvas(){
+		if(!canDraw) return;
+		socket.emit("canvas-cleared");
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+	}
 
-	function startGame(data){
-		t= setInterval(timed,1000);
-		function timed(){
-			if(countdown==4){
-				timer.innerHTML = data.name + " is drawing."
-				countdown --;
-			}
-			else if(countdown>0){
-				timer.innerHTML = "Game will begin in "+ countdown;
-				countdown--;
-			}
-			else if(countdown==0){
-				timer.innerHTML = "Begin Game";
-				countdown--;
-			}
-			else{
-				timer.innerHTML = count;
-				count --;
-				if(count==0){
-					timer.innerHTML= "Game over";
-					clearInterval(t);
-				}
-			}
-		}
-		console.log(data.word);
-		btn.addEventListener("click",()=>{
-			if(msg.value==data.word){
-				messageCon.innerHTML += `<p style="color:green">`+name +` guessed the word correctly</p><br>`;
-				socket.emit("matched",{name:name});
-			}
-			msg.value = "";
-		});
-
-	}//start game function
-	socket.on("start",startGame);
-
-	socket.on("matched",(data)=>{
-		messageCon.innerHTML += `<p style="color:green">`+data.name +` guessed the word correctly</p><br>`;
+	socket.on("canvas-cleared",()=>{
+		ctx.clearRect(0,0,canvas.width,canvas.height);
 	});
+	
+	//drawing functionality ends
+	socket.on("word-selection" , (data)=>{
+		console.log("selected");
+		console.log("You can draw!");
+		canDraw = true;
+		d1=document.getElementById("o1");
+		d2=document.getElementById("o2");
+		d3=document.getElementById("o3");
+		se = document.getElementById("sel")
+
+		d1.value=data.w1;
+		d2.value=data.w2;
+		d3.value=data.w3;
+
+		d1.innerHTML=data.w1;
+		d2.innerHTML=data.w2;
+		d3.innerHTML=data.w3;
+
+		wh = document.getElementById("word-holder");
+		selectBtn = document.getElementById("chose")
+
+		selectBtn.addEventListener("click",()=>{
+			console.log(se.value)
+			selectBtn.style.display = "none";
+			socket.emit("word-selected",{word: se.value});
+			wh.innerHTML = "The word you selected is "+se.value;
+
+		});
+	});
+
+	dispTime = document.getElementById("timer");
+
+	socket.on("word-selected",(data)=>{
+		const timeStamp = new Date();
+		ct = Math.floor(timeStamp.getTime()/1000);
+		console.log("selected word is "+data.word);
+		console.log("Time of round start: "+data.time);
+		console.log("Current time is "+ct);
+
+		//Timer funtionality
+		t = setInterval(countDown,1000);
+		p = 81 - (ct - data.time);
+		function countDown(){
+			p--;
+			dispTime.innerHTML = p
+			if(p<=0){
+				dispTime.innerHTML = "Turn Over"
+				clearInterval(t);
+			}
+		};
+	});
+
+	socket.on("word-guessed",(data)=>{
+		messageCon.innerHTML += data.name + " guessed the word!<br>";
+	});
+	
+	socket.on("start-game",()=>{
+		console.log("game started");
+	})
+
+	
 });

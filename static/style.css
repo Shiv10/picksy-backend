@@ -34,3 +34,21 @@
   width: 30%;
   height: 500px;
 }
+
+#scorecard{
+  text-align: center;
+  float: right;
+  width: 30%;
+  height: 40%;
+  margin-right: 0;
+  margin-bottom: 0;
+  border: 2px solid black;
+}
+
+#clear-canvas{
+  float: left;
+}
+
+.btn{
+  float: left
+}
