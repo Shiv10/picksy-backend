@@ -40,7 +40,7 @@ module.exports.listen = (app) => {
 			names[name] = socket;
 			users[socket.id] = name;
 			//logger.info(users);
-			console.log(names);
+			// console.log(names);
 			keys=Object.keys(names);
 			uc++;
 
@@ -68,7 +68,7 @@ module.exports.listen = (app) => {
 		if((keys.length+1)>2){
 			socket.emit("start-game");
 			if(turnOn){
-				socket.emit("word-selected",{name: room.currentDrawer,word: room.cuurentWord, time: room.turn.timeStart});
+				socket.emit("word-selected",{name: room.currentDrawer, time: room.turn.timeStart});
 			}
 			
 		}
@@ -79,7 +79,7 @@ module.exports.listen = (app) => {
 			room.currentWord = data.word;
 			ct = Math.floor(timeStamp.getTime()/1000);
 			room.turn.timeStart = ct;
-			io.emit("word-selected",{name: room.currentDrawer, word: data.word, time: ct});
+			io.emit("word-selected",{name: room.currentDrawer, time: ct});
 			turnOn = true;
 			setTimeout(turnChange,82000);
 			function turnChange(){
@@ -91,6 +91,7 @@ module.exports.listen = (app) => {
 				}
 				//names[room.currentDrawer].emit("round-end");
 				else{
+					names[room.currentDrawer].emit("turn-end");
 					io.emit("canvas-cleared");
 					room.turn.start=true;
 					changeTurn();
@@ -99,6 +100,7 @@ module.exports.listen = (app) => {
 		});
 
 		function roundChange(){
+			names[room.currentDrawer].emit("turn-end");
 			io.emit("round-end");
 			room.roundNumber++;
 		}

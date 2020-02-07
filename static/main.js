@@ -18,6 +18,7 @@ window.addEventListener("load", () => {
 		if(msg.value=="")return;
 		socket.emit("message", { text: msg.value });
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
+		msg.value = "";
 	}
 
 	btn.addEventListener("click", send);
@@ -91,8 +92,7 @@ window.addEventListener("load", () => {
 	
 	//drawing functionality ends
 
-	selectBtn = document.getElementById("chose")
-	socket.on("word-selection" , (data)=>{
+	selectWord = (data)=>{
 		console.log("selected");
 		console.log("You can draw!");
 		canDraw = true;
@@ -114,13 +114,15 @@ window.addEventListener("load", () => {
 		selectBtn.style.display = "inline";
 
 		selectBtn.addEventListener("click",()=>{
-
-			console.log(se.value)
 			selectBtn.style.display = "none";
 			socket.emit("word-selected",{word: se.value});
 			wh.innerHTML = "The word you selected is "+se.value;
-
 		});
+	}
+
+	selectBtn = document.getElementById("chose")
+	socket.on("word-selection" , (data)=>{
+		selectWord(data);
 	});
 
 	dispTime = document.getElementById("timer");
@@ -128,7 +130,6 @@ window.addEventListener("load", () => {
 	socket.on("word-selected",(data)=>{
 		const timeStamp = new Date();
 		ct = Math.floor(timeStamp.getTime()/1000);
-		console.log("selected word is "+data.word);
 		console.log("Time of round start: "+data.time);
 		console.log("Current time is "+ct);
 		dispName = document.getElementById("drawer");
@@ -145,6 +146,11 @@ window.addEventListener("load", () => {
 				clearInterval(t);
 			}
 		};
+	});
+
+	socket.on("turn-end",()=>{
+		canDraw = false;
+		console.log("Turn end!");
 	});
 
 	socket.on("round-end",()=>{
