@@ -68,7 +68,7 @@ module.exports.listen = (app) => {
 		if((keys.length+1)>2){
 			socket.emit("start-game");
 			if(turnOn){
-				socket.emit("word-selected",{word: room.cuurentWord, time: room.turn.timeStart})
+				socket.emit("word-selected",{name: room.currentDrawer,word: room.cuurentWord, time: room.turn.timeStart});
 			}
 			
 		}
@@ -79,21 +79,29 @@ module.exports.listen = (app) => {
 			room.currentWord = data.word;
 			ct = Math.floor(timeStamp.getTime()/1000);
 			room.turn.timeStart = ct;
-			io.emit("word-selected",{word: data.word, time: ct});
+			io.emit("word-selected",{name: room.currentDrawer, word: data.word, time: ct});
 			turnOn = true;
-			setTimeout(turnChange,80000);
+			setTimeout(turnChange,82000);
 			function turnChange(){
 				console.log("turn over!");
 				turn++;
 				if(turn==uc){
-					turn=0;
+					roundChange();
+					turnOn = false;
 				}
 				//names[room.currentDrawer].emit("round-end");
-				io.emit("canvas-cleared");
-				room.turn.start=true;
-				changeTurn();
+				else{
+					io.emit("canvas-cleared");
+					room.turn.start=true;
+					changeTurn();
+				}
 			};
 		});
+
+		function roundChange(){
+			io.emit("round-end");
+			room.roundNumber++;
+		}
 
 		socket.on("message", (data) => {
 			if(data.text == room.currentWord){
@@ -127,7 +135,6 @@ module.exports.listen = (app) => {
 			// console.log(names);
 			delete users[socket.id];
 		});
-
 
 
 	});
