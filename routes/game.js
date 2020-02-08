@@ -17,7 +17,7 @@ const room = {
 	currentDrawer : ""
 }
 let turn = 0 ;
-turnOn = false;
+let turnOn = false;
 
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
