@@ -2,7 +2,7 @@ const socketio = require("socket.io");
 const { logger } = require("../tools/loggers");
 
 const users = {};
-names = {};
+const names = {};
 const keys=[]
 words=["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
 uc = 0;
