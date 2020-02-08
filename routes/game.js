@@ -3,9 +3,9 @@ const { logger } = require("../tools/loggers");
 
 const users = {};
 const names = {};
-const keys=[]
-words=["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
-uc = 0;
+const keys= []
+const words= ["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
+userCount = 0;
 
 const room ={
 	roundNumber: 0,
@@ -16,7 +16,7 @@ const room ={
 	currentWord : "",
 	currentDrawer : ""
 }
-turn =0 ;
+turn = 0 ;
 turnOn = false;
 
 module.exports.listen = (app) => {
@@ -42,7 +42,7 @@ module.exports.listen = (app) => {
 			//logger.info(users);
 			// console.log(names);
 			keys=Object.keys(names);
-			uc++;
+			userCount++;
 
 		});
 
@@ -85,7 +85,7 @@ module.exports.listen = (app) => {
 			function turnChange(){
 				console.log("turn over!");
 				turn++;
-				if(turn==uc){
+				if(turn==userCount){
 					roundChange();
 					turnOn = false;
 				}
