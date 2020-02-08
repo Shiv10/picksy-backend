@@ -3,7 +3,7 @@ const { logger } = require("../tools/loggers");
 
 const users = {};
 const names = {};
-const keys= []
+let keys= []
 const words= ["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
 let userCount = 0;
 
