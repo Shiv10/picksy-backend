@@ -5,7 +5,7 @@ const users = {};
 const names = {};
 const keys= []
 const words= ["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
-userCount = 0;
+let userCount = 0;
 
 const room ={
 	roundNumber: 0,
