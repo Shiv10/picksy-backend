@@ -7,7 +7,7 @@ const keys= []
 const words= ["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
 let userCount = 0;
 
-const room ={
+const room = {
 	roundNumber: 0,
 	turn : {
 		start: false,
