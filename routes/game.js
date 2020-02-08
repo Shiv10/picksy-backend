@@ -7,7 +7,7 @@ keys=[]
 words=["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
 uc = 0;
 
-room ={
+const room ={
 	roundNumber: 0,
 	turn : {
 		start: false,
