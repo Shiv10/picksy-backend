@@ -16,7 +16,7 @@ const room = {
 	currentWord : "",
 	currentDrawer : ""
 }
-turn = 0 ;
+let turn = 0 ;
 turnOn = false;
 
 module.exports.listen = (app) => {
