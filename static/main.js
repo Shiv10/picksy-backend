@@ -3,8 +3,7 @@ window.addEventListener("load", () => {
 	const ctx = canvas.getContext("2d");
 	// eslint-disable-next-line no-undef
 	const socket = io("http://localhost:3002");
-	const name = prompt("Enter your name!");
-
+	let name = "";
 
 	const messageCon = document.getElementById("message-container");
 	const btn = document.getElementById("send-button");
@@ -12,10 +11,18 @@ window.addEventListener("load", () => {
 	canDraw = false;
 	chat = true;
 
-	socket.emit("new user", name);
+	while (true) {
+		name = prompt("Enter your name");
+		if (name != "") {
+			socket.emit("new user", name);
+			break;
+		}
+	}
+
+
 
 	function send() {
-		if(msg.value=="")return;
+		if (msg.value == "") return;
 		socket.emit("message", { text: msg.value });
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
 		msg.value = "";
@@ -27,7 +34,7 @@ window.addEventListener("load", () => {
 		messageCon.innerHTML += `<strong>${data.name}</strong>: ${data.text}<br>`;
 	});
 
-	
+
 	//Drawing fucntionality started
 	canvas.height = 500;
 	canvas.width = 500;
@@ -36,7 +43,7 @@ window.addEventListener("load", () => {
 
 	function draw(e) {
 		if (!painting) return;
-		if(!canDraw) return;
+		if (!canDraw) return;
 
 		ctx.lineWidth = 5;
 		ctx.lineCap = "round";
@@ -79,90 +86,90 @@ window.addEventListener("load", () => {
 	canvas.addEventListener("mousemove", draw);
 
 	const clrbtn = document.getElementById("clear-canvas");
-	clrbtn.addEventListener("click",clearCanvas);
-	function clearCanvas(){
-		if(!canDraw) return;
+	clrbtn.addEventListener("click", clearCanvas);
+	function clearCanvas() {
+		if (!canDraw) return;
 		socket.emit("canvas-cleared");
-		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 	}
 
-	socket.on("canvas-cleared",()=>{
-		ctx.clearRect(0,0,canvas.width,canvas.height);
+	socket.on("canvas-cleared", () => {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 	});
-	
+
 	//drawing functionality ends
 
-	selectWord = (data)=>{
+	selectWord = (data) => {
 		console.log("selected");
 		console.log("You can draw!");
 		canDraw = true;
-		d1=document.getElementById("o1");
-		d2=document.getElementById("o2");
-		d3=document.getElementById("o3");
+		d1 = document.getElementById("o1");
+		d2 = document.getElementById("o2");
+		d3 = document.getElementById("o3");
 		se = document.getElementById("sel")
-		
 
-		d1.value=data.w1;
-		d2.value=data.w2;
-		d3.value=data.w3;
-		
-		d1.innerHTML=data.w1;
-		d2.innerHTML=data.w2;
-		d3.innerHTML=data.w3;
+
+		d1.value = data.w1;
+		d2.value = data.w2;
+		d3.value = data.w3;
+
+		d1.innerHTML = data.w1;
+		d2.innerHTML = data.w2;
+		d3.innerHTML = data.w3;
 
 		wh = document.getElementById("word-holder");
 		selectBtn.style.display = "inline";
 
-		selectBtn.addEventListener("click",()=>{
+		selectBtn.addEventListener("click", () => {
 			selectBtn.style.display = "none";
-			socket.emit("word-selected",{word: se.value});
-			wh.innerHTML = "The word you selected is "+se.value;
+			socket.emit("word-selected", { word: se.value });
+			wh.innerHTML = "The word you selected is " + se.value;
 		});
 	}
 
 	selectBtn = document.getElementById("chose")
-	socket.on("word-selection" , (data)=>{
+	socket.on("word-selection", (data) => {
 		selectWord(data);
 	});
 
 	dispTime = document.getElementById("timer");
 
-	socket.on("word-selected",(data)=>{
+	socket.on("word-selected", (data) => {
 		const timeStamp = new Date();
-		ct = Math.floor(timeStamp.getTime()/1000);
-		console.log("Time of round start: "+data.time);
-		console.log("Current time is "+ct);
+		ct = Math.floor(timeStamp.getTime() / 1000);
+		console.log("Time of round start: " + data.time);
+		console.log("Current time is " + ct);
 		dispName = document.getElementById("drawer");
-		dispName.innerHTML =data.name +" is drawing!"; 
+		dispName.innerHTML = data.name + " is drawing!";
 
 		//Timer funtionality
-		t = setInterval(countDown,1000);
+		t = setInterval(countDown, 1000);
 		p = 81 - (ct - data.time);
-		function countDown(){
+		function countDown() {
 			p--;
 			dispTime.innerHTML = p
-			if(p<=0){
+			if (p <= 0) {
 				dispTime.innerHTML = "Turn Over"
 				clearInterval(t);
 			}
 		};
 	});
 
-	socket.on("turn-end",()=>{
+	socket.on("turn-end", () => {
 		canDraw = false;
 		console.log("Turn end!");
 	});
 
-	socket.on("round-end",()=>{
+	socket.on("round-end", () => {
 		dispTime.innerHTML = "<strong>Round has ended!</strong>";
 	});
 
-	socket.on("word-guessed",(data)=>{
+	socket.on("word-guessed", (data) => {
 		messageCon.innerHTML += data.name + " guessed the word!<br>";
 	});
-	
-	socket.on("start-game",()=>{
+
+	socket.on("start-game", () => {
 		console.log("game started");
 	});
-	
+
 });

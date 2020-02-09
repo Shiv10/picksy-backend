@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css"/>
+  <link rel="stylesheet" href="/static/style.css" />
   <title>Simple Canvas</title>
   <script src="/static/socket.io.js"></script>
   <script src="/static/main.js"></script>
 </head>
+
 <body>
   <div class="demo">
     <div id="draw">
       <canvas id="canvas"></canvas>
     </div>
-    
+
     <div id="chat">
       <div id="message-container" class="txt"></div>
       <div class="marg">
@@ -31,7 +33,7 @@
       <select id="sel">
         <option value="" id="o1">Not your turn</option>
         <option value="" id="o2">Not your turn</option>
-        <option value="" id = "o3" >Not your turn</option>
+        <option value="" id="o3">Not your turn</option>
       </select>
       <button id="chose">Chose</button>
       <!-- <div id="scorecard"><h4><strong>Scorecard</strong></h4></div> -->
@@ -40,4 +42,5 @@
     <br>
   </div>
 </body>
+
 </html>

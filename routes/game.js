@@ -3,20 +3,20 @@ const { logger } = require("../tools/loggers");
 
 const users = {};
 const names = {};
-let keys= []
-const words= ["pen","paper","glasses","bottle","keyboard","sun","hills","glue","keys","box"]
+let keys = []
+const words = ["pen", "paper", "glasses", "bottle", "keyboard", "sun", "hills", "glue", "keys", "box"]
 let userCount = 0;
 
 const room = {
 	roundNumber: 0,
-	turn : {
+	turn: {
 		start: false,
 		timeStart: 0.0
 	},
-	currentWord : "",
-	currentDrawer : ""
+	currentWord: "",
+	currentDrawer: ""
 }
-let turn = 0 ;
+let turn = 0;
 let turnOn = false;
 
 module.exports.listen = (app) => {
@@ -35,106 +35,106 @@ module.exports.listen = (app) => {
 		// chat MessageChannel (correct, wrong, close guesses all handled here)
 		// display score (score at end of each round)
 
-		socket.on("new user", (name)=>{
+		socket.on("new user", (name) => {
 			logger.info("user connected");
 			names[name] = socket;
 			users[socket.id] = name;
 			//logger.info(users);
-			// console.log(names);
-			keys=Object.keys(names);
+			//logger.info(names);
+			keys = Object.keys(names);
 			userCount++;
 
 		});
 
-		keys=Object.keys(names);
-		if((keys.length+1)==2){
+		keys = Object.keys(names);
+		if ((keys.length + 1) == 2) {
 			io.emit("start-game");
 			room.turn.start = true;
 			changeTurn();
 		}
 
-		function changeTurn(){
-			if(!room.turn.start) return;
+		function changeTurn() {
+			if (!room.turn.start) return;
 
 			room.currentDrawer = keys[turn];
-			n1 = Math.floor(Math.random()*10);
-			n2 = Math.floor(Math.random()*10);
-			n3 = Math.floor(Math.random()*10);
-			names[room.currentDrawer].emit("word-selection",{w1: words[n1], w2: words[n2], w3: words[n3]});
+			n1 = Math.floor(Math.random() * 10);
+			n2 = Math.floor(Math.random() * 10);
+			n3 = Math.floor(Math.random() * 10);
+			names[room.currentDrawer].emit("word-selection", { w1: words[n1], w2: words[n2], w3: words[n3] });
 			room.turn.start = false;
 		};
 
-		
-		if((keys.length+1)>2){
+
+		if ((keys.length + 1) > 2) {
 			socket.emit("start-game");
-			if(turnOn){
-				socket.emit("word-selected",{name: room.currentDrawer, time: room.turn.timeStart});
+			if (turnOn) {
+				socket.emit("word-selected", { name: room.currentDrawer, time: room.turn.timeStart });
 			}
-			
+
 		}
 
-		socket.on("word-selected",(data)=>{
-			const timeStamp= new Date();
-			console.log(data.word);
+		socket.on("word-selected", (data) => {
+			const timeStamp = new Date();
+			logger.info(data.word);
 			room.currentWord = data.word;
-			ct = Math.floor(timeStamp.getTime()/1000);
+			ct = Math.floor(timeStamp.getTime() / 1000);
 			room.turn.timeStart = ct;
-			io.emit("word-selected",{name: room.currentDrawer, time: ct});
+			io.emit("word-selected", { name: room.currentDrawer, time: ct });
 			turnOn = true;
-			setTimeout(turnChange,82000);
-			function turnChange(){
-				console.log("turn over!");
+			setTimeout(turnChange, 82000);
+			function turnChange() {
+				logger.info("turn over!");
 				turn++;
-				if(turn==userCount){
+				if (turn == userCount) {
 					roundChange();
 					turnOn = false;
 				}
 				//names[room.currentDrawer].emit("round-end");
-				else{
+				else {
 					names[room.currentDrawer].emit("turn-end");
 					io.emit("canvas-cleared");
-					room.turn.start=true;
+					room.turn.start = true;
 					changeTurn();
 				}
 			};
 		});
 
-		function roundChange(){
+		function roundChange() {
 			names[room.currentDrawer].emit("turn-end");
 			io.emit("round-end");
 			room.roundNumber++;
 		}
 
 		socket.on("message", (data) => {
-			if(data.text == room.currentWord){
-				console.log(users[socket.id]+" guessed!");
-				io.emit("word-guessed",{name: users[socket.id]});
+			if (data.text == room.currentWord) {
+				logger.info(users[socket.id] + " guessed!");
+				io.emit("word-guessed", { name: users[socket.id] });
 			}
-			else{
+			else {
 				socket.broadcast.emit("message", {
 					name: users[socket.id],
 					text: data.text
 				});
 			}
-			
+
 		});
-		
-		socket.on("draw", (data)=>{
+
+		socket.on("draw", (data) => {
 			socket.broadcast.emit("draw", data);
 		});
 
-		socket.on("stop", ()=>{
+		socket.on("stop", () => {
 			socket.broadcast.emit("stop");
 		});
 
-		socket.on("canvas-cleared",()=>{
+		socket.on("canvas-cleared", () => {
 			socket.broadcast.emit("canvas-cleared");
 		})
 
-		socket.on("disconnect", ()=>{
+		socket.on("disconnect", () => {
 			logger.info("disconnected");
 			delete names[users[socket.id]];
-			// console.log(names);
+			//logger.info(names);
 			delete users[socket.id];
 		});
 
