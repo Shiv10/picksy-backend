@@ -127,6 +127,7 @@ function changeTurn() {
 
 function roundChange(io) {
 	names[room.currentDrawer].emit("turn-end");
+	io.emit("canvas-cleared");
 	io.emit("round-end");
 	room.roundNumber += 1;
 	if (room.roundNumber < 3) {
