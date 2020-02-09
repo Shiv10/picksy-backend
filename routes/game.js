@@ -120,6 +120,7 @@ function changeTurn() {
 		w1: words[n1],
 		w2: words[n2],
 		w3: words[n3],
+		round: room.roundNumber
 	});
 	room.turn.start = false;
 }
@@ -128,6 +129,12 @@ function roundChange(io) {
 	names[room.currentDrawer].emit("turn-end");
 	io.emit("round-end");
 	room.roundNumber += 1;
+	if (room.roundNumber < 3) {
+		turn = 0;
+		room.turn.start = true;
+		turnOn = true;
+		changeTurn();
+	}
 }
 
 function turnChange(io) {

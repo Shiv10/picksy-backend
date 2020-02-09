@@ -117,17 +117,39 @@ window.addEventListener("load", () => {
 		d2.innerHTML = data.w2;
 		d3.innerHTML = data.w3;
 
+		selectBtn = document.getElementById("chose1")
 		wh = document.getElementById("word-holder");
-		selectBtn.style.display = "inline";
 
-		selectBtn.addEventListener("click", () => {
-			selectBtn.style.display = "none";
-			socket.emit("word-selected", { word: se.value });
-			wh.innerHTML = "The word you selected is " + se.value;
-		});
+		if (data.round == 0) {
+			selectBtn1 = document.getElementById("chose1")
+			selectBtn1.style.display = "inline";
+			selectBtn1.addEventListener("click", () => {
+				selectBtn1.style.display = "none";
+				socket.emit("word-selected", { word: se.value });
+				wh.innerHTML = "The word you selected is " + se.value;
+			});
+		}
+		else if (data.round == 1) {
+			selectBtn2 = document.getElementById("chose2")
+			selectBtn2.style.display = "inline";
+			selectBtn2.addEventListener("click", () => {
+				selectBtn2.style.display = "none";
+				socket.emit("word-selected", { word: se.value });
+				wh.innerHTML = "The word you selected is " + se.value;
+			});
+		}
+		else if (data.round == 2) {
+			selectBtn3 = document.getElementById("chose3")
+			selectBtn3.style.display = "inline";
+			selectBtn3.addEventListener("click", () => {
+				selectBtn3.style.display = "none";
+				socket.emit("word-selected", { word: se.value });
+				wh.innerHTML = "The word you selected is " + se.value;
+			});
+		}
+
 	}
 
-	selectBtn = document.getElementById("chose")
 	socket.on("word-selection", (data) => {
 		selectWord(data);
 	});
