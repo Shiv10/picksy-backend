@@ -1,10 +1,11 @@
 /* eslint-disable no-use-before-define */
 const socketio = require("socket.io");
+const constants = require("../tools/constants");
 
 const { logger } = require("../tools/loggers");
 
-const users = {};
-const names = {};
+const users = {}; // socket_id -> username
+
 let keys = [];
 const words = [
 	"pen",
@@ -28,8 +29,9 @@ const room = {
 	},
 	currentWord: "",
 	currentDrawer: "",
+	currentDrawerId: "",
 	drawStackX: [],
-	drawStackY: []
+	drawStackY: [],
 };
 let turn = 0;
 let turnOn = false;
@@ -38,24 +40,24 @@ module.exports.listen = (app) => {
 	const io = socketio.listen(app);
 
 	io.on("connection", (socket) => {
+		logger.info(JSON.stringify(constants));
 		socket.on("new user", (name) => {
 			logger.info("user connected");
-			names[name] = socket;
 			users[socket.id] = name;
 			// logger.info(users);
 			// logger.info(names);
-			keys = Object.keys(names);
+			keys = Object.values(users);
 			userCount += 1;
 			if (turnOn) {
-				previousDrawing(io, name)
+				previousDrawing(io, name);
 			}
 		});
 
-		keys = Object.keys(names);
+		keys = Object.values(users);
 		if (keys.length + 1 === 2) {
 			io.emit("start-game");
 			room.turn.start = true;
-			changeTurn(io);
+			selectDrawer(io);
 		}
 
 		if (keys.length + 1 > 2) {
@@ -76,7 +78,7 @@ module.exports.listen = (app) => {
 			room.turn.timeStart = ct;
 			io.emit("word-selected", { name: room.currentDrawer, time: ct });
 			turnOn = true;
-			setTimeout(turnChange, 82000, io);
+			setTimeout(turnChange, 10000, io);
 		});
 
 		socket.on("message", (data) => {
@@ -107,44 +109,67 @@ module.exports.listen = (app) => {
 
 		socket.on("disconnect", () => {
 			logger.info(users[socket.id] + " disconnected");
-			delete names[users[socket.id]];
+			if (users[socket.id] == room.currentDrawer) {
+				console.log("Drawer disconnected!");
+			}
 			delete users[socket.id];
+			userCount--;
 		});
 	});
 
 	return io;
 };
 
-function changeTurn() {
+function selectDrawer(io) {
+	// 1. Selects drawer
+	// 2. Generates random words
+	// 3. Emits event to drawer with the random word and round number.
 	if (!room.turn.start) return;
 
-	room.currentDrawer = Object.keys(names)[turn];
-	const n1 = Math.floor(Math.random() * 10);
-	const n2 = Math.floor(Math.random() * 10);
-	const n3 = Math.floor(Math.random() * 10);
-	names[room.currentDrawer].emit("word-selection", {
-		w1: words[n1],
-		w2: words[n2],
-		w3: words[n3],
-		round: room.roundNumber
+	room.currentDrawer = Object.values(users)[turn];
+	userIds = Object.keys(users);
+	for (i = 0; i < userCount; i++) {
+		if (users[userIds[i]] == room.currentDrawer) {
+			room.currentDrawerId = userIds[i];
+			break;
+		}
+	}
+
+	const shuffledWords = words
+		.map((x) => ({ x, r: Math.random() }))
+		.sort((a, b) => a.r - b.r)
+		.map((a) => a.x)
+		.slice(0, constants.wordSelOptions);
+	io.to(room.currentDrawerId).emit("word-selection", {
+		w1: shuffledWords[0],
+		w2: shuffledWords[1],
+		w3: shuffledWords[2],
+		round: room.roundNumber,
 	});
 	room.turn.start = false;
 }
 
 function roundChange(io) {
-	names[room.currentDrawer].emit("turn-end");
+	// 1. Changer round, shifts to next round.
+	// 2. Cleares canvas
+	io.to(room.currentDrawerId).emit("turn-end");
 	io.emit("canvas-cleared");
 	io.emit("round-end");
+	logger.info("Round end!")
+	logger.info(constants.roundNum);
 	room.roundNumber += 1;
-	if (room.roundNumber < 3) {
+	if (room.roundNumber < constants.roundNum) {
 		turn = 0;
 		room.turn.start = true;
 		turnOn = true;
-		changeTurn();
+		selectDrawer(io);
 	}
 }
 
 function turnChange(io) {
+	// 1. Mover the turn to the next client
+	// 2. When all clients have had turns, then round is changed.
+
 	logger.info("turn over!");
 	room.drawStackX = [];
 	room.drawStackY = [];
@@ -153,16 +178,28 @@ function turnChange(io) {
 		roundChange(io);
 		turnOn = false;
 	} else {
-		names[room.currentDrawer].emit("turn-end");
+		io.to(room.currentDrawerId).emit("turn-end");
 		io.emit("canvas-cleared");
 		room.turn.start = true;
-		changeTurn();
+		selectDrawer(io);
 	}
 }
 
 function previousDrawing(io, name) {
+	// 1. Pushes the drawStack to the new client.
+
+	drawId = "";
+	userIds = Object.keys(users);
+	for (i = 0; i < userCount; i++) {
+		if (users[userIds[i]] == name) {
+			drawId = userIds[i];
+			break;
+		}
+	}
+
 	let l = room.drawStackX.length;
 	for (i = 0; i < l; i++) {
-		names[name].emit("draw", { x: room.drawStackX[i], y: room.drawStackY[i] })
+		io.to(drawId).emit("draw", { x: room.drawStackX[i], y: room.drawStackY[i] });
 	}
+	io.to(drawId).emit("stop");
 }

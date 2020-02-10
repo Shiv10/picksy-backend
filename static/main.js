@@ -19,8 +19,6 @@ window.addEventListener("load", () => {
 		}
 	}
 
-
-
 	function send() {
 		if (msg.value == "") return;
 		socket.emit("message", { text: msg.value });
@@ -33,7 +31,6 @@ window.addEventListener("load", () => {
 	socket.on("message", (data) => {
 		messageCon.innerHTML += `<strong>${data.name}</strong>: ${data.text}<br>`;
 	});
-
 
 	//Drawing fucntionality started
 	canvas.height = 500;
@@ -99,15 +96,17 @@ window.addEventListener("load", () => {
 
 	//drawing functionality ends
 
+	wh = document.getElementById("word-holder");
+	dispName = document.getElementById("drawer");
 	selectWord = (data) => {
 		console.log("selected");
 		console.log("You can draw!");
 		canDraw = true;
+		dispName.innerHTML = "Your Turn!";
 		d1 = document.getElementById("o1");
 		d2 = document.getElementById("o2");
 		d3 = document.getElementById("o3");
-		se = document.getElementById("sel")
-
+		se = document.getElementById("sel");
 
 		d1.value = data.w1;
 		d2.value = data.w2;
@@ -117,29 +116,26 @@ window.addEventListener("load", () => {
 		d2.innerHTML = data.w2;
 		d3.innerHTML = data.w3;
 
-		selectBtn = document.getElementById("chose1")
-		wh = document.getElementById("word-holder");
+		selectBtn = document.getElementById("chose1");
 
 		if (data.round == 0) {
-			selectBtn1 = document.getElementById("chose1")
+			selectBtn1 = document.getElementById("chose1");
 			selectBtn1.style.display = "inline";
 			selectBtn1.addEventListener("click", () => {
 				selectBtn1.style.display = "none";
 				socket.emit("word-selected", { word: se.value });
 				wh.innerHTML = "The word you selected is " + se.value;
 			});
-		}
-		else if (data.round == 1) {
-			selectBtn2 = document.getElementById("chose2")
+		} else if (data.round == 1) {
+			selectBtn2 = document.getElementById("chose2");
 			selectBtn2.style.display = "inline";
 			selectBtn2.addEventListener("click", () => {
 				selectBtn2.style.display = "none";
 				socket.emit("word-selected", { word: se.value });
 				wh.innerHTML = "The word you selected is " + se.value;
 			});
-		}
-		else if (data.round == 2) {
-			selectBtn3 = document.getElementById("chose3")
+		} else if (data.round == 2) {
+			selectBtn3 = document.getElementById("chose3");
 			selectBtn3.style.display = "inline";
 			selectBtn3.addEventListener("click", () => {
 				selectBtn3.style.display = "none";
@@ -147,8 +143,7 @@ window.addEventListener("load", () => {
 				wh.innerHTML = "The word you selected is " + se.value;
 			});
 		}
-
-	}
+	};
 
 	socket.on("word-selection", (data) => {
 		selectWord(data);
@@ -161,25 +156,27 @@ window.addEventListener("load", () => {
 		ct = Math.floor(timeStamp.getTime() / 1000);
 		console.log("Time of round start: " + data.time);
 		console.log("Current time is " + ct);
-		dispName = document.getElementById("drawer");
 		dispName.innerHTML = data.name + " is drawing!";
 
 		//Timer funtionality
 		t = setInterval(countDown, 1000);
-		p = 81 - (ct - data.time);
+		p = 11 - (ct - data.time);
 		function countDown() {
 			p--;
-			dispTime.innerHTML = p
+			dispTime.innerHTML = p;
 			if (p <= 0) {
-				dispTime.innerHTML = "Turn Over"
+				dispTime.innerHTML = "Turn Over";
+				dispName.innerHTML = "";
 				clearInterval(t);
 			}
-		};
+		}
 	});
 
 	socket.on("turn-end", () => {
 		canDraw = false;
 		console.log("Turn end!");
+		wh.innerHTML = "";
+		dispName.innerHTML = "";
 	});
 
 	socket.on("round-end", () => {
@@ -193,5 +190,4 @@ window.addEventListener("load", () => {
 	socket.on("start-game", () => {
 		console.log("game started");
 	});
-
 });
