@@ -28,6 +28,8 @@ const room = {
 	},
 	currentWord: "",
 	currentDrawer: "",
+	drawStackX: [],
+	drawStackY: []
 };
 let turn = 0;
 let turnOn = false;
@@ -44,6 +46,9 @@ module.exports.listen = (app) => {
 			// logger.info(names);
 			keys = Object.keys(names);
 			userCount += 1;
+			if (turnOn) {
+				previousDrawing(io, name)
+			}
 		});
 
 		keys = Object.keys(names);
@@ -87,6 +92,8 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("draw", (data) => {
+			room.drawStackX.push(data.x);
+			room.drawStackY.push(data.y);
 			socket.broadcast.emit("draw", data);
 		});
 
@@ -99,9 +106,8 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("disconnect", () => {
-			logger.info("disconnected");
+			logger.info(users[socket.id] + " disconnected");
 			delete names[users[socket.id]];
-			// logger.info(names);
 			delete users[socket.id];
 		});
 	});
@@ -140,6 +146,8 @@ function roundChange(io) {
 
 function turnChange(io) {
 	logger.info("turn over!");
+	room.drawStackX = [];
+	room.drawStackY = [];
 	turn += 1;
 	if (turn === userCount) {
 		roundChange(io);
@@ -149,5 +157,12 @@ function turnChange(io) {
 		io.emit("canvas-cleared");
 		room.turn.start = true;
 		changeTurn();
+	}
+}
+
+function previousDrawing(io, name) {
+	let l = room.drawStackX.length;
+	for (i = 0; i < l; i++) {
+		names[name].emit("draw", { x: room.drawStackX[i], y: room.drawStackY[i] })
 	}
 }
