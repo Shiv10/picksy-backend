@@ -33,6 +33,9 @@ window.addEventListener("load", () => {
 	});
 
 	//Drawing fucntionality started
+
+	color = "black";
+
 	canvas.height = 500;
 	canvas.width = 500;
 
@@ -42,6 +45,13 @@ window.addEventListener("load", () => {
 		if (!painting) return;
 		if (!canDraw) return;
 
+		colorBtn = document.getElementById("color");
+		selectedColor = document.getElementById("colorPicker");
+		colorBtn.addEventListener("click", () => {
+			color = selectedColor.value;
+		});
+
+		ctx.strokeStyle = color;
 		ctx.lineWidth = 5;
 		ctx.lineCap = "round";
 
@@ -50,7 +60,7 @@ window.addEventListener("load", () => {
 		ctx.beginPath();
 		ctx.moveTo(e.clientX, e.clientY);
 
-		socket.emit("draw", { x: e.clientX, y: e.clientY });
+		socket.emit("draw", { x: e.clientX, y: e.clientY, color: color });
 	}
 
 	function startPosition(e) {
@@ -67,6 +77,7 @@ window.addEventListener("load", () => {
 	socket.on("draw", (data) => {
 		ctx.lineWidth = 5;
 		ctx.lineCap = "round";
+		ctx.strokeStyle = data.color;
 
 		ctx.lineTo(data.x, data.y);
 		ctx.stroke();

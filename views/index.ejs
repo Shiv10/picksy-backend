@@ -1,48 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="/static/style.css" />
+		<title>Simple Canvas</title>
+		<script src="/static/socket.io.js"></script>
+		<script src="/static/main.js"></script>
+	</head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css" />
-  <title>Simple Canvas</title>
-  <script src="/static/socket.io.js"></script>
-  <script src="/static/main.js"></script>
-</head>
+	<body>
+		<div class="demo">
+			<div id="container">
+				<div id="draw">
+					<canvas id="canvas"></canvas>
+				</div>
 
-<body>
-  <div class="demo">
-    <div id="draw">
-      <canvas id="canvas"></canvas>
-    </div>
-
-    <div id="chat">
-      <div id="message-container" class="txt"></div>
-      <div class="marg">
-        <input type="text" id="message-input" placeholder="Enter message here" autocomplete="off">
-        <button id="send-button">Send</button>
+				<div id="chat">
+					<div id="message-container" class="txt"></div>
+					<div class="marg">
+						<input
+							type="text"
+							id="message-input"
+							placeholder="Enter message here"
+							autocomplete="off"
+						/>
+						<button id="send-button">Send</button>
+					</div>
+				</div>
+				<div id="rough">
+					<h3 id="timer">Game will begin shortly</h3>
+					<h4 id="word-holder"></h4>
+					<h4 id="drawer"></h4>
+					<br />
+					<select id="sel">
+						<option value="" id="o1">Not your turn</option>
+						<option value="" id="o2">Not your turn</option>
+						<option value="" id="o3">Not your turn</option>
+					</select>
+					<button id="chose1" style="display: none;">Round 1</button>
+					<button id="chose2" style="display: none;">Round 2</button>
+					<button id="chose3" style="display: none;">Round 3</button>
+					<!-- <div id="scorecard"><h4><strong>Scorecard</strong></h4></div> -->
+				</div>
+				<button id="clear-canvas">Clear canvas</button>
+				<br />
       </div>
-    </div>
-    <div id="rough">
-      <h3 id="timer">Game will begin shortly</h3>
-      <h4 id="word-holder"></h4>
-      <h4 id="drawer"></h4>
       <br>
-      <select id="sel">
-        <option value="" id="o1">Not your turn</option>
-        <option value="" id="o2">Not your turn</option>
-        <option value="" id="o3">Not your turn</option>
-      </select>
-      <button id="chose1" style="display: none;">Round 1</button>
-      <button id="chose2" style="display: none;">Round 2</button>
-      <button id="chose3" style="display: none;">Round 3</button>
-      <!-- <div id="scorecard"><h4><strong>Scorecard</strong></h4></div> -->
-    </div>
-    <button id="clear-canvas">Clear canvas</button>
-    <br>
-  </div>
-</body>
-
+      <div id="color-select">
+        <select id="colorPicker">
+          <option value="black">Black</option>
+          <option value="violet">Violet</option>
+          <option value="indigo">Indigo</option>
+          <option value="blue">blue</option>
+          <option value="green">green</option>
+          <option value="yellow">yellow</option>
+          <option value="orange">orange</option>
+          <option value="red">red</option>
+          <option value="brown">brown</option>
+        </select>
+        <button id="color" class="btn">Pick Color</button>
+      </div>
+		</div>
+	</body>
 </html>
