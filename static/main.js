@@ -157,14 +157,20 @@ window.addEventListener("load", () => {
 		console.log("Time of round start: " + data.time);
 		console.log("Current time is " + ct);
 		dispName.innerHTML = data.name + " is drawing!";
+		drawerDisconnedted = false;
+
+		socket.on("drawer-disconnected", () => {
+			drawerDisconnedted = true;
+		});
 
 		//Timer funtionality
 		t = setInterval(countDown, 1000);
-		p = 11 - (ct - data.time);
+		p = 31 - (ct - data.time);
 		function countDown() {
 			p--;
 			dispTime.innerHTML = p;
-			if (p <= 0) {
+			if (p <= 0 || drawerDisconnedted) {
+				console.log("drawer gone!");
 				dispTime.innerHTML = "Turn Over";
 				dispName.innerHTML = "";
 				clearInterval(t);

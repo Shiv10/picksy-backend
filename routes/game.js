@@ -40,7 +40,6 @@ module.exports.listen = (app) => {
 	const io = socketio.listen(app);
 
 	io.on("connection", (socket) => {
-		logger.info(JSON.stringify(constants));
 		socket.on("new user", (name) => {
 			logger.info("user connected");
 			users[socket.id] = name;
@@ -78,7 +77,7 @@ module.exports.listen = (app) => {
 			room.turn.timeStart = ct;
 			io.emit("word-selected", { name: room.currentDrawer, time: ct });
 			turnOn = true;
-			setTimeout(turnChange, 10000, io);
+			timeout = setTimeout(turnChange, 30000, io);
 		});
 
 		socket.on("message", (data) => {
@@ -110,10 +109,13 @@ module.exports.listen = (app) => {
 		socket.on("disconnect", () => {
 			logger.info(users[socket.id] + " disconnected");
 			if (users[socket.id] == room.currentDrawer) {
+				delete users[socket.id];
 				console.log("Drawer disconnected!");
+				drawerDisconnected(io);
+			} else {
+				delete users[socket.id];
+				userCount--;
 			}
-			delete users[socket.id];
-			userCount--;
 		});
 	});
 
@@ -127,6 +129,7 @@ function selectDrawer(io) {
 	if (!room.turn.start) return;
 
 	room.currentDrawer = Object.values(users)[turn];
+	logger.info(room.currentDrawer);
 	userIds = Object.keys(users);
 	for (i = 0; i < userCount; i++) {
 		if (users[userIds[i]] == room.currentDrawer) {
@@ -155,7 +158,7 @@ function roundChange(io) {
 	io.to(room.currentDrawerId).emit("turn-end");
 	io.emit("canvas-cleared");
 	io.emit("round-end");
-	logger.info("Round end!")
+	logger.info("Round end!");
 	logger.info(constants.roundNum);
 	room.roundNumber += 1;
 	if (room.roundNumber < constants.roundNum) {
@@ -202,4 +205,36 @@ function previousDrawing(io, name) {
 		io.to(drawId).emit("draw", { x: room.drawStackX[i], y: room.drawStackY[i] });
 	}
 	io.to(drawId).emit("stop");
+}
+
+function drawerDisconnected(io) {
+	io.emit("drawer-disconnected");
+	turn--;
+	userCount--;
+	clearTimeout(timeout);
+	logger.info("turn over!");
+	room.drawStackX = [];
+	room.drawStackY = [];
+	turn += 1;
+	if (turn === userCount) {
+		roundChangeOnDisconnect(io);
+		turnOn = false;
+	} else {
+		io.emit("canvas-cleared");
+		room.turn.start = true;
+		selectDrawer(io);
+	}
+}
+
+function roundChangeOnDisconnect(io) {
+	io.emit("canvas-cleared");
+	io.emit("round-end");
+	logger.info("Round end!");
+	room.roundNumber += 1;
+	if (room.roundNumber < constants.roundNum) {
+		turn = 0;
+		room.turn.start = true;
+		turnOn = true;
+		selectDrawer(io);
+	}
 }
