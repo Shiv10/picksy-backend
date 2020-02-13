@@ -81,7 +81,7 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("message", (data) => {
-			if (data.text === room.currentWord) {
+			if (data.text === room.currentWord && users[socket.id]!=room.currentDrawer) {
 				logger.info(`${users[socket.id]} guessed!`);
 				io.emit("word-guessed", { name: users[socket.id] });
 			} else {
@@ -108,13 +108,13 @@ module.exports.listen = (app) => {
 
 		socket.on("disconnect", () => {
 			logger.info(users[socket.id] + " disconnected");
-			if (users[socket.id] == room.currentDrawer) {
+			userCount--;
+			if (users[socket.id] == room.currentDrawer && userCount > 1) {
 				delete users[socket.id];
 				console.log("Drawer disconnected!");
 				drawerDisconnected(io);
 			} else {
 				delete users[socket.id];
-				userCount--;
 			}
 		});
 	});
@@ -155,6 +155,7 @@ function selectDrawer(io) {
 function roundChange(io) {
 	// 1. Changer round, shifts to next round.
 	// 2. Cleares canvas
+
 	io.to(room.currentDrawerId).emit("turn-end");
 	io.emit("canvas-cleared");
 	io.emit("round-end");
@@ -174,6 +175,7 @@ function turnChange(io) {
 	// 2. When all clients have had turns, then round is changed.
 
 	logger.info("turn over!");
+	room.currentWord = "";
 	room.drawStackX = [];
 	room.drawStackY = [];
 	turn += 1;
