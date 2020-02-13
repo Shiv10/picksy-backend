@@ -7,18 +7,7 @@ const { logger } = require("../tools/loggers");
 const users = {}; // socket_id -> username
 
 let keys = [];
-const words = [
-	"pen",
-	"paper",
-	"glasses",
-	"bottle",
-	"keyboard",
-	"sun",
-	"hills",
-	"glue",
-	"keys",
-	"box",
-];
+const words = ["pen", "paper", "glasses", "bottle", "keyboard", "sun", "hills", "glue", "keys", "box"];
 let userCount = 0;
 
 const room = {
@@ -77,7 +66,7 @@ module.exports.listen = (app) => {
 			room.turn.timeStart = ct;
 			io.emit("word-selected", { name: room.currentDrawer, time: ct });
 			turnOn = true;
-			timeout = setTimeout(turnChange, 30000, io);
+			const timeout = setTimeout(turnChange, 30000, io);
 		});
 
 		socket.on("message", (data) => {
@@ -107,14 +96,14 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("disconnect", () => {
-			logger.info(users[socket.id] + " disconnected");
+			logger.info(`${users[socket.id]} disconnected`);
 			if (users[socket.id] == room.currentDrawer) {
 				delete users[socket.id];
-				console.log("Drawer disconnected!");
+				logger.info("Drawer disconnected!");
 				drawerDisconnected(io);
 			} else {
 				delete users[socket.id];
-				userCount--;
+				userCount -= 1;
 			}
 		});
 	});
@@ -130,9 +119,10 @@ function selectDrawer(io) {
 
 	room.currentDrawer = Object.values(users)[turn];
 	logger.info(room.currentDrawer);
-	userIds = Object.keys(users);
-	for (i = 0; i < userCount; i++) {
-		if (users[userIds[i]] == room.currentDrawer) {
+	const userIds = Object.keys(users);
+
+	for (let i = 0; i < userCount; i += 1) {
+		if (users[userIds[i]] === room.currentDrawer) {
 			room.currentDrawerId = userIds[i];
 			break;
 		}
@@ -143,6 +133,7 @@ function selectDrawer(io) {
 		.sort((a, b) => a.r - b.r)
 		.map((a) => a.x)
 		.slice(0, constants.wordSelOptions);
+
 	io.to(room.currentDrawerId).emit("word-selection", {
 		w1: shuffledWords[0],
 		w2: shuffledWords[1],
@@ -155,6 +146,7 @@ function selectDrawer(io) {
 function roundChange(io) {
 	// 1. Changer round, shifts to next round.
 	// 2. Cleares canvas
+
 	io.to(room.currentDrawerId).emit("turn-end");
 	io.emit("canvas-cleared");
 	io.emit("round-end");
@@ -191,17 +183,17 @@ function turnChange(io) {
 function previousDrawing(io, name) {
 	// 1. Pushes the drawStack to the new client.
 
-	drawId = "";
-	userIds = Object.keys(users);
-	for (i = 0; i < userCount; i++) {
-		if (users[userIds[i]] == name) {
+	let drawId = "";
+	const userIds = Object.keys(users);
+	for (let i = 0; i < userCount; i += 1) {
+		if (users[userIds[i]] === name) {
 			drawId = userIds[i];
 			break;
 		}
 	}
 
-	let l = room.drawStackX.length;
-	for (i = 0; i < l; i++) {
+	const l = room.drawStackX.length;
+	for (let i = 0; i < l; i += 1) {
 		io.to(drawId).emit("draw", { x: room.drawStackX[i], y: room.drawStackY[i] });
 	}
 	io.to(drawId).emit("stop");
@@ -209,8 +201,9 @@ function previousDrawing(io, name) {
 
 function drawerDisconnected(io) {
 	io.emit("drawer-disconnected");
-	turn--;
-	userCount--;
+
+	turn -= 1;
+	userCount -= 1;
 	clearTimeout(timeout);
 	logger.info("turn over!");
 	room.drawStackX = [];
