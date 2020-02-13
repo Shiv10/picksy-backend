@@ -70,7 +70,7 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("message", (data) => {
-			if (data.text === room.currentWord && users[socket.id] != room.currentDrawer) {
+			if (data.text === room.currentWord && users[socket.id] !== room.currentDrawer) {
 				logger.info(`${users[socket.id]} guessed!`);
 				io.emit("word-guessed", { name: users[socket.id] });
 			} else {
@@ -98,7 +98,7 @@ module.exports.listen = (app) => {
 		socket.on("disconnect", () => {
 			logger.info(`${users[socket.id]} disconnected`);
 			userCount -= 1;
-			if (users[socket.id] == room.currentDrawer && userCount > 1) {
+			if (users[socket.id] === room.currentDrawer && userCount > 1) {
 				delete users[socket.id];
 				logger.info("Drawer disconnected!");
 				drawerDisconnected(io);
