@@ -1,25 +1,34 @@
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
+
+const socket = io("http://localhost:3002");
+let name = "";
+while (true) {
+	name = prompt("Enter your name");
+	if (name !== "") {
+		socket.emit("new user", name);
+		break;
+	}
+}
+
 window.addEventListener("load", () => {
+	if (name === null) {
+		const mainDiv = document.getElementById("main");
+		disconnectMessage = document.getElementById("no-name");
+		disconnectMessage.innerHTML = "Please refresh and join again with a name!"
+		mainDiv.style.display = "none"; 
+		socket.disconnect();
+		return;
+	}
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
 	// eslint-disable-next-line no-undef
-	const socket = io("http://localhost:3002");
-	let name = "";
 
 	const messageCon = document.getElementById("message-container");
 	const btn = document.getElementById("send-button");
 	const msg = document.getElementById("message-input");
 	let canDraw = false;
 	const chat = true;
-
-	while (true) {
-		name = prompt("Enter your name");
-		if (name !== "") {
-			socket.emit("new user", name);
-			break;
-		}
-	}
 
 	function send() {
 		if (msg.value === "") return;
