@@ -66,7 +66,7 @@ module.exports.listen = (app) => {
 			room.turn.timeStart = ct;
 			io.emit("word-selected", { name: room.currentDrawer, time: ct });
 			turnOn = true;
-			const timeout = setTimeout(turnChange, 30000, io);
+			timeout = setTimeout(turnChange, 30000, io);
 		});
 
 		socket.on("message", (data) => {
@@ -204,7 +204,6 @@ function drawerDisconnected(io) {
 	io.emit("drawer-disconnected");
 
 	turn -= 1;
-	userCount -= 1;
 	clearTimeout(timeout);
 	logger.info("turn over!");
 	room.drawStackX = [];

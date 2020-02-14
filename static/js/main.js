@@ -183,7 +183,6 @@ window.addEventListener("load", () => {
 			p -= 1;
 			dispTime.innerHTML = p;
 			if (p <= 0 || drawerDisconnedted) {
-				console.log("drawer gone!");
 				dispTime.innerHTML = "Turn Over";
 				dispName.innerHTML = "";
 				clearInterval(t);
