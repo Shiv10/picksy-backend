@@ -30,7 +30,7 @@ let turnOn = false;
 
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
-
+	let timeout;
 	io.on("connection", (socket) => {
 		socket.on("new user", (name) => {
 			logger.info("user connected");
@@ -105,7 +105,7 @@ module.exports.listen = (app) => {
 			if (users[socket.id] === room.currentDrawer && userCount > 1) {
 				delete users[socket.id];
 				logger.info("Drawer disconnected!");
-				drawerDisconnected(io);
+				drawerDisconnected(io,timeout);
 			} else {
 				delete users[socket.id];
 			}
@@ -206,7 +206,7 @@ function previousDrawing(io, name) {
 	io.to(drawId).emit("stop");
 }
 
-function drawerDisconnected(io) {
+function drawerDisconnected(io,timeout) {
 	io.emit("drawer-disconnected");
 
 	turn -= 1;
