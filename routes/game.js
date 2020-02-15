@@ -15,13 +15,16 @@ const room = {
 	turn: {
 		start: false,
 		timeStart: 0.0,
+		timeTotal: 0,
 	},
 	currentWord: "",
 	currentDrawer: "",
 	currentDrawerId: "",
 	drawStackX: [],
 	drawStackY: [],
+	points: {},
 };
+
 let turn = 0;
 let turnOn = false;
 
@@ -32,10 +35,9 @@ module.exports.listen = (app) => {
 		socket.on("new user", (name) => {
 			logger.info("user connected");
 			users[socket.id] = name;
-			// logger.info(users);
-			// logger.info(names);
 			keys = Object.values(users);
 			userCount += 1;
+			room.points[name] = 0;
 			if (turnOn) {
 				previousDrawing(io, name);
 			}
@@ -66,12 +68,13 @@ module.exports.listen = (app) => {
 			room.turn.timeStart = ct;
 			io.emit("word-selected", { name: room.currentDrawer, time: ct });
 			turnOn = true;
-			timeout = setTimeout(turnChange, 30000, io);
+			timeout = setTimeout(turnChange, constants.timeOfRound, io);
 		});
 
 		socket.on("message", (data) => {
 			if (data.text === room.currentWord && users[socket.id] !== room.currentDrawer) {
-				logger.info(`${users[socket.id]} guessed!`);
+				t = data.time - room.turn.timeStart;
+				room.points[users[socket.id]] += calculatePoints(data.time);
 				io.emit("word-guessed", { name: users[socket.id] });
 			} else {
 				socket.broadcast.emit("message", {
@@ -97,6 +100,7 @@ module.exports.listen = (app) => {
 
 		socket.on("disconnect", () => {
 			logger.info(`${users[socket.id]} disconnected`);
+			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard on disconnection, but we can add this functionality
 			userCount -= 1;
 			if (users[socket.id] === room.currentDrawer && userCount > 1) {
 				delete users[socket.id];
@@ -151,7 +155,6 @@ function roundChange(io) {
 	io.emit("canvas-cleared");
 	io.emit("round-end");
 	logger.info("Round end!");
-	logger.info(constants.roundNum);
 	room.roundNumber += 1;
 	if (room.roundNumber < constants.roundNum) {
 		turn = 0;
@@ -169,6 +172,9 @@ function turnChange(io) {
 	room.currentWord = "";
 	room.drawStackX = [];
 	room.drawStackY = [];
+	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
+	room.turn.timeTotal = 0;
+	io.emit("update-scoreboard", room.points);
 	turn += 1;
 	if (turn === userCount) {
 		roundChange(io);
@@ -209,6 +215,9 @@ function drawerDisconnected(io) {
 	room.drawStackX = [];
 	room.drawStackY = [];
 	turn += 1;
+	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
+	room.turn.timeTotal = 0;
+	io.emit("update-scoreboard", room.points);
 	if (turn === userCount) {
 		roundChangeOnDisconnect(io);
 		turnOn = false;
@@ -230,4 +239,11 @@ function roundChangeOnDisconnect(io) {
 		turnOn = true;
 		selectDrawer(io);
 	}
+}
+
+function calculatePoints(t) {
+	let time = 30 - (t - room.turn.timeStart);
+	let p = time * constants.playerPointFactor;
+	room.turn.timeTotal += time;
+	return p;
 }

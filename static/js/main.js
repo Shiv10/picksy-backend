@@ -15,8 +15,8 @@ window.addEventListener("load", () => {
 	if (name === null) {
 		const mainDiv = document.getElementById("main");
 		disconnectMessage = document.getElementById("no-name");
-		disconnectMessage.innerHTML = "Please refresh and join again with a name!"
-		mainDiv.style.display = "none"; 
+		disconnectMessage.innerHTML = "Please refresh and join again with a name!";
+		mainDiv.style.display = "none";
 		socket.disconnect();
 		return;
 	}
@@ -31,8 +31,10 @@ window.addEventListener("load", () => {
 	const chat = true;
 
 	function send() {
+		const timeStamp = new Date();
+		const ct = Math.floor(timeStamp.getTime() / 1000);
 		if (msg.value === "") return;
-		socket.emit("message", { text: msg.value });
+		socket.emit("message", { text: msg.value, time: ct });
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
 		msg.value = "";
 	}
@@ -217,4 +219,16 @@ window.addEventListener("load", () => {
 	socket.on("start-game", () => {
 		console.log("game started");
 	});
+
+	function updateScoreboard(points) {
+		const board = document.getElementById("scorecard");
+		const keys = Object.keys(points);
+		let l = keys.length;
+		board.innerHTML = "";
+		board.innerHTML = `<h4><strong>Scorecard</strong></h4>`
+		for (let i = 0; i < l; i++) {
+			board.innerHTML += `<p>${keys[i]}: ${points[keys[i]]}`;
+		}
+	}
+	socket.on("update-scoreboard", updateScoreboard);
 });

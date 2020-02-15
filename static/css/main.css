@@ -43,6 +43,7 @@
   margin-right: 0;
   margin-bottom: 0;
   border: 2px solid black;
+  overflow: auto;
 }
 
 #clear-canvas{
