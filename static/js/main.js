@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
 
-const socket = io(window.location.hostname+":3002");
+const socket = io(window.location.hostname + ":3002");
 let name = "";
 while (true) {
 	name = prompt("Enter your name");
@@ -38,6 +38,13 @@ window.addEventListener("load", () => {
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
 		msg.value = "";
 	}
+
+	msg.addEventListener("keyup", (e) => {
+		if (e.keyCode === 13) {
+			e.preventDefault();
+			btn.click();
+		}
+	});
 
 	btn.addEventListener("click", send);
 
@@ -225,7 +232,7 @@ window.addEventListener("load", () => {
 		const keys = Object.keys(points);
 		let l = keys.length;
 		board.innerHTML = "";
-		board.innerHTML = `<h4><strong>Scorecard</strong></h4>`
+		board.innerHTML = `<h4><strong>Scorecard</strong></h4>`;
 		for (let i = 0; i < l; i++) {
 			board.innerHTML += `<p>${keys[i]}: ${points[keys[i]]}`;
 		}

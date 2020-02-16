@@ -18,12 +18,12 @@ const room = {
 		timeTotal: 0,
 	},
 	currentWord: "",
-	currentDrawer: "",	
+	currentDrawer: "",
 	currentDrawerId: "",
 	drawStackX: [],
 	drawStackY: [],
 	points: {},
-	usersGuessed: 0
+	usersGuessed: 0,
 };
 
 let turn = 0;
@@ -78,10 +78,10 @@ module.exports.listen = (app) => {
 				room.points[users[socket.id]] += calculatePoints(data.time);
 				room.usersGuessed += 1;
 				io.emit("word-guessed", { name: users[socket.id] });
-				if(room.usersGuessed === (userCount -1)){
+				if (room.usersGuessed === userCount - 1) {
 					io.emit("next-turn");
 					clearTimeout(timeout);
-					turnChange(io)
+					turnChange(io);
 				}
 			} else {
 				socket.broadcast.emit("message", {
@@ -112,7 +112,7 @@ module.exports.listen = (app) => {
 			if (users[socket.id] === room.currentDrawer && userCount > 1) {
 				delete users[socket.id];
 				logger.info("Drawer disconnected!");
-				drawerDisconnected(io,timeout);
+				drawerDisconnected(io, timeout);
 			} else {
 				delete users[socket.id];
 			}
@@ -214,7 +214,7 @@ function previousDrawing(io, name) {
 	io.to(drawId).emit("stop");
 }
 
-function drawerDisconnected(io,timeout) {
+function drawerDisconnected(io, timeout) {
 	io.emit("next-turn");
 
 	turn -= 1;
