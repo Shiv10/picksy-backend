@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
 
-const socket = io("http://localhost:3002");
+const socket = io(window.location.hostname+":3002");
 let name = "";
 while (true) {
 	name = prompt("Enter your name");
@@ -181,19 +181,19 @@ window.addEventListener("load", () => {
 		console.log(`Time of round start: ${data.time}`);
 		console.log(`Current time is ${ct}`);
 		dispName.innerHTML = `${data.name} is drawing!`;
-		let drawerDisconnedted = false;
+		let nextTurn = false;
 
-		socket.on("drawer-disconnected", () => {
-			drawerDisconnedted = true;
+		socket.on("next-turn", () => {
+			nextTurn = true;
 		});
 
 		// Timer funtionality
 		const t = setInterval(countDown, 1000);
-		let p = 31 - (ct - data.time);
+		let p = 41 - (ct - data.time);
 		function countDown() {
 			p -= 1;
 			dispTime.innerHTML = p;
-			if (p <= 0 || drawerDisconnedted) {
+			if (p <= 0 || nextTurn) {
 				dispTime.innerHTML = "Turn Over";
 				dispName.innerHTML = "";
 				clearInterval(t);
