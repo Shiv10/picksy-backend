@@ -1,13 +1,28 @@
 /* eslint-disable no-use-before-define */
 const socketio = require("socket.io");
 const constants = require("../tools/constants");
+const stringSimilarity = require("string-similarity");
 
 const { logger } = require("../tools/loggers");
 
 const users = {}; // socket_id -> username
 
 let keys = [];
-const words = ["pen", "paper", "glasses", "bottle", "keyboard", "sun", "hills", "glue", "keys", "box", "laptop", "window", "hat"];
+const words = [
+	"pencil",
+	"paper",
+	"glasses",
+	"bottle",
+	"keyboard",
+	"clouds",
+	"hills",
+	"glue",
+	"keys",
+	"cuboid",
+	"laptop",
+	"window",
+	"shoe",
+];
 let userCount = 0;
 
 const room = {
@@ -84,10 +99,15 @@ module.exports.listen = (app) => {
 					turnChange(io);
 				}
 			} else {
-				socket.broadcast.emit("message", {
-					name: users[socket.id],
-					text: data.text,
-				});
+				let similarity = checkSimilarity(data.text);
+				if (similarity >= 0.55) {
+					io.emit("similar-word", { text: data.text });
+				} else {
+					socket.broadcast.emit("message", {
+						name: users[socket.id],
+						text: data.text,
+					});
+				}
 			}
 		});
 
@@ -250,8 +270,13 @@ function roundChangeOnDisconnect(io) {
 }
 
 function calculatePoints(t) {
-	let time = 30 - (t - room.turn.timeStart);
+	let time = 80 - (t - room.turn.timeStart);
 	let p = time * constants.playerPointFactor;
 	room.turn.timeTotal += time;
 	return p;
+}
+
+function checkSimilarity(text) {
+	let similarity = stringSimilarity.compareTwoStrings(room.currentWord, text);
+	return similarity;
 }

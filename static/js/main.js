@@ -66,7 +66,7 @@ window.addEventListener("load", () => {
 		if (!canDraw) return;
 
 		const selectedColor = document.getElementById("colorPicker");
-		
+
 		ctx.strokeStyle = selectedColor.value;
 		ctx.lineWidth = 5;
 		ctx.lineCap = "round";
@@ -192,7 +192,7 @@ window.addEventListener("load", () => {
 
 		// Timer funtionality
 		const t = setInterval(countDown, 1000);
-		let p = 41 - (ct - data.time);
+		let p = 81 - (ct - data.time);
 		function countDown() {
 			p -= 1;
 			dispTime.innerHTML = p;
@@ -216,7 +216,11 @@ window.addEventListener("load", () => {
 	});
 
 	socket.on("word-guessed", (data) => {
-		messageCon.innerHTML += `${data.name} guessed the word!<br>`;
+		messageCon.innerHTML += `<p style = "color:green">${data.name} guessed the word!<br></p>`;
+	});
+
+	socket.on("similar-word", (data) => {
+		messageCon.innerHTML += `<p style = "color:red">${data.text} is close!<br></p>`;
 	});
 
 	socket.on("start-game", () => {
