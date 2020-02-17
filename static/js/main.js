@@ -65,13 +65,9 @@ window.addEventListener("load", () => {
 		if (!painting) return;
 		if (!canDraw) return;
 
-		const colorBtn = document.getElementById("color");
 		const selectedColor = document.getElementById("colorPicker");
-		colorBtn.addEventListener("click", () => {
-			color = selectedColor.value;
-		});
-
-		ctx.strokeStyle = color;
+		
+		ctx.strokeStyle = selectedColor.value;
 		ctx.lineWidth = 5;
 		ctx.lineCap = "round";
 
@@ -80,7 +76,7 @@ window.addEventListener("load", () => {
 		ctx.beginPath();
 		ctx.moveTo(e.clientX, e.clientY);
 
-		socket.emit("draw", { x: e.clientX, y: e.clientY, color });
+		socket.emit("draw", { x: e.clientX, y: e.clientY, color: selectedColor.value });
 	}
 
 	function startPosition(e) {

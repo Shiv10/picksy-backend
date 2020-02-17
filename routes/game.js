@@ -7,7 +7,7 @@ const { logger } = require("../tools/loggers");
 const users = {}; // socket_id -> username
 
 let keys = [];
-const words = ["pen", "paper", "glasses", "bottle", "keyboard", "sun", "hills", "glue", "keys", "box"];
+const words = ["pen", "paper", "glasses", "bottle", "keyboard", "sun", "hills", "glue", "keys", "box", "laptop", "window", "hat"];
 let userCount = 0;
 
 const room = {
