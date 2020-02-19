@@ -1,7 +1,8 @@
+/* eslint-disable linebreak-style */
 /* eslint-disable no-use-before-define */
 const socketio = require("socket.io");
-const constants = require("../tools/constants");
 const stringSimilarity = require("string-similarity");
+const constants = require("../tools/constants");
 
 const { logger } = require("../tools/loggers");
 
@@ -44,6 +45,11 @@ const room = {
 let turn = 0;
 let turnOn = false;
 
+let wordRevealInterval;
+let cleared = false;
+let indexes = [];
+let letters = [];
+
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
 	let timeout;
@@ -85,10 +91,14 @@ module.exports.listen = (app) => {
 			io.emit("word-selected", { name: room.currentDrawer, time: ct });
 			turnOn = true;
 			timeout = setTimeout(turnChange, constants.timeOfRound, io);
+			const wordRevealTime = Math.floor(60 / Math.floor(room.currentWord.length / 2));
+			wordRevealInterval = setInterval(revealLetter, wordRevealTime * 1000, io);
+			cleared = false;
 		});
 
 		socket.on("message", (data) => {
 			if (data.text === room.currentWord && users[socket.id] !== room.currentDrawer) {
+				// eslint-disable-next-line no-undef
 				t = data.time - room.turn.timeStart;
 				room.points[users[socket.id]] += calculatePoints(data.time);
 				room.usersGuessed += 1;
@@ -99,7 +109,7 @@ module.exports.listen = (app) => {
 					turnChange(io);
 				}
 			} else {
-				let similarity = checkSimilarity(data.text);
+				const similarity = checkSimilarity(data.text);
 				if (similarity >= 0.55) {
 					io.emit("similar-word", { text: data.text });
 				} else {
@@ -125,9 +135,17 @@ module.exports.listen = (app) => {
 			socket.broadcast.emit("canvas-cleared");
 		});
 
+		socket.on("no-more-reveal", () => {
+			clearInterval(wordRevealInterval);
+			indexes = [];
+			letters = [];
+			cleared = true;
+		});
+
 		socket.on("disconnect", () => {
 			logger.info(`${users[socket.id]} disconnected`);
-			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard on disconnection, but we can add this functionality
+			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard
+			// on disconnection, but we can add this functionality
 			userCount -= 1;
 			if (users[socket.id] === room.currentDrawer && userCount > 1) {
 				delete users[socket.id];
@@ -202,6 +220,12 @@ function turnChange(io) {
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
 	room.usersGuessed = 0;
+	if (!cleared) {
+		clearInterval(wordRevealInterval);
+		cleared = true;
+		indexes = [];
+		letters = [];
+	}
 	io.emit("update-scoreboard", room.points);
 	turn += 1;
 	if (turn === userCount) {
@@ -226,12 +250,12 @@ function previousDrawing(io, name) {
 			break;
 		}
 	}
-
 	const l = room.drawStackX.length;
 	for (let i = 0; i < l; i += 1) {
 		io.to(drawId).emit("draw", { x: room.drawStackX[i], y: room.drawStackY[i] });
 	}
 	io.to(drawId).emit("stop");
+	io.to(drawId).emit("revealed", { letters, indexes });
 }
 
 function drawerDisconnected(io, timeout) {
@@ -245,6 +269,12 @@ function drawerDisconnected(io, timeout) {
 	turn += 1;
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
+	if (!cleared) {
+		clearInterval(wordRevealInterval);
+		cleared = true;
+		indexes = [];
+		letters = [];
+	}
 	io.emit("update-scoreboard", room.points);
 	if (turn === userCount) {
 		roundChangeOnDisconnect(io);
@@ -270,13 +300,32 @@ function roundChangeOnDisconnect(io) {
 }
 
 function calculatePoints(t) {
-	let time = 80 - (t - room.turn.timeStart);
-	let p = time * constants.playerPointFactor;
+	const time = 80 - (t - room.turn.timeStart);
+	const p = time * constants.playerPointFactor;
 	room.turn.timeTotal += time;
 	return p;
 }
 
 function checkSimilarity(text) {
-	let similarity = stringSimilarity.compareTwoStrings(room.currentWord, text);
+	const similarity = stringSimilarity.compareTwoStrings(room.currentWord, text);
 	return similarity;
+}
+
+function revealLetter(io) {
+	let letter = "";
+	let letterIndex;
+	let loop = true;
+	while (loop) {
+		letterIndex = Math.floor(Math.random() * (room.currentWord.length - 1 - 0));
+		// logger.info(letterIndex);
+		if (indexes.indexOf(letterIndex) === -1) {
+			indexes.push(letterIndex);
+			loop = false;
+			break;
+		}
+	}
+
+	letter = room.currentWord.charAt(letterIndex);
+	letters.push(letter);
+	io.emit("letter", { letter, index: letterIndex });
 }

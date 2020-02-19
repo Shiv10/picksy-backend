@@ -12,8 +12,7 @@ const { logger } = require("./tools/loggers");
 
 const port = parseInt(process.env.PORT, 10) || 3001;
 
-
-process.env.JWT_SECRET="abcd";
+process.env.JWT_SECRET = "abcd";
 if (!process.env.JWT_SECRET) {
 	logger.error("Fatal Error: JWT_SECRET not defined");
 	process.exit(1);

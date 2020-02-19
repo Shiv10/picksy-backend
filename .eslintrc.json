@@ -20,6 +20,8 @@
         "no-tabs": ["error", { "allowIndentationTabs": true }],
         "no-unused-vars": 0,
         "quotes": ["error", "double"],
-        "no-param-reassign": [2, { "props": false }]
+        "no-param-reassign": [2, { "props": false }],
+        "max-len": 0,
+        "linebreak-style":"off"
     }
 }

@@ -1,8 +1,12 @@
+/* eslint-disable no-alert */
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
 
-const socket = io(window.location.hostname + ":3002");
+// eslint-disable-next-line no-undef
+const socket = io(`${window.location.hostname}:3002`);
 let name = "";
+
+// eslint-disable-next-line no-constant-condition
 while (true) {
 	name = prompt("Enter your name");
 	if (name !== "") {
@@ -14,7 +18,7 @@ while (true) {
 window.addEventListener("load", () => {
 	if (name === null) {
 		const mainDiv = document.getElementById("main");
-		disconnectMessage = document.getElementById("no-name");
+		const disconnectMessage = document.getElementById("no-name");
 		disconnectMessage.innerHTML = "Please refresh and join again with a name!";
 		mainDiv.style.display = "none";
 		socket.disconnect();
@@ -29,6 +33,7 @@ window.addEventListener("load", () => {
 	const msg = document.getElementById("message-input");
 	let canDraw = false;
 	const chat = true;
+	const wordCon = document.getElementById("word-reveal");
 
 	function send() {
 		const timeStamp = new Date();
@@ -54,7 +59,7 @@ window.addEventListener("load", () => {
 
 	// Drawing fucntionality started
 
-	let color = "black";
+	const color = "black";
 
 	canvas.height = 500;
 	canvas.width = 500;
@@ -199,7 +204,12 @@ window.addEventListener("load", () => {
 			if (p <= 0 || nextTurn) {
 				dispTime.innerHTML = "Turn Over";
 				dispName.innerHTML = "";
+				wordCon.innerHTML = "";
 				clearInterval(t);
+			}
+
+			if (p <= 20) {
+				socket.emit("no-more-reveal");
 			}
 		}
 	});
@@ -227,15 +237,29 @@ window.addEventListener("load", () => {
 		console.log("game started");
 	});
 
+	function revealLetter(data) {
+		wordCon.innerHTML += `<strong>${data.letter}</strong> at index: ${data.index}<br>`;
+	}
+
+	socket.on("letter", revealLetter);
+
+	function wordsRevealed(data) {
+		for (let i = 0; i < data.letters.length; i += 1) {
+			wordCon.innerHTML += `<strong>${data.letters[i]}</strong> at index: ${data.indexes[i]}<br>`;
+		}
+	}
+	socket.on("revealed", wordsRevealed);
+
 	function updateScoreboard(points) {
 		const board = document.getElementById("scorecard");
 		const keys = Object.keys(points);
-		let l = keys.length;
+		const l = keys.length;
 		board.innerHTML = "";
-		board.innerHTML = `<h4><strong>Scorecard</strong></h4>`;
-		for (let i = 0; i < l; i++) {
+		board.innerHTML = "<h4><strong>Scorecard</strong></h4>";
+		for (let i = 0; i < l; i += 1) {
 			board.innerHTML += `<p>${keys[i]}: ${points[keys[i]]}`;
 		}
 	}
+
 	socket.on("update-scoreboard", updateScoreboard);
 });
