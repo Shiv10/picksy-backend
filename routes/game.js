@@ -36,10 +36,15 @@ const room = {
 	currentWord: "",
 	currentDrawer: "",
 	currentDrawerId: "",
-	drawStackX: [],
-	drawStackY: [],
 	points: {},
 	usersGuessed: 0,
+};
+
+const cache = {
+	drawStackX: [],
+	drawStackY: [],
+	indexes: [],
+	letters: [],
 };
 
 let turn = 0;
@@ -47,8 +52,6 @@ let turnOn = false;
 
 let wordRevealInterval;
 let cleared = false;
-let indexes = [];
-let letters = [];
 
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
@@ -122,8 +125,8 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("draw", (data) => {
-			room.drawStackX.push(data.x);
-			room.drawStackY.push(data.y);
+			cache.drawStackX.push(data.x);
+			cache.drawStackY.push(data.y);
 			socket.broadcast.emit("draw", data);
 		});
 
@@ -137,8 +140,8 @@ module.exports.listen = (app) => {
 
 		socket.on("no-more-reveal", () => {
 			clearInterval(wordRevealInterval);
-			indexes = [];
-			letters = [];
+			cache.indexes = [];
+			cache.letters = [];
 			cleared = true;
 		});
 
@@ -215,16 +218,16 @@ function turnChange(io) {
 
 	logger.info("turn over!");
 	room.currentWord = "";
-	room.drawStackX = [];
-	room.drawStackY = [];
+	cache.drawStackX = [];
+	cache.drawStackY = [];
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
 	room.usersGuessed = 0;
 	if (!cleared) {
 		clearInterval(wordRevealInterval);
 		cleared = true;
-		indexes = [];
-		letters = [];
+		cache.indexes = [];
+		cache.letters = [];
 	}
 	io.emit("update-scoreboard", room.points);
 	turn += 1;
@@ -250,12 +253,12 @@ function previousDrawing(io, name) {
 			break;
 		}
 	}
-	const l = room.drawStackX.length;
+	const l = cache.drawStackX.length;
 	for (let i = 0; i < l; i += 1) {
-		io.to(drawId).emit("draw", { x: room.drawStackX[i], y: room.drawStackY[i] });
+		io.to(drawId).emit("draw", { x: cache.drawStackX[i], y: cache.drawStackY[i] });
 	}
 	io.to(drawId).emit("stop");
-	io.to(drawId).emit("revealed", { letters, indexes });
+	io.to(drawId).emit("revealed", { letters: cache.letters, indexes: cache.indexes });
 }
 
 function drawerDisconnected(io, timeout) {
@@ -264,16 +267,16 @@ function drawerDisconnected(io, timeout) {
 	turn -= 1;
 	clearTimeout(timeout);
 	logger.info("turn over!");
-	room.drawStackX = [];
-	room.drawStackY = [];
+	cache.drawStackX = [];
+	cache.drawStackY = [];
 	turn += 1;
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
 	if (!cleared) {
 		clearInterval(wordRevealInterval);
 		cleared = true;
-		indexes = [];
-		letters = [];
+		cache.indexes = [];
+		cache.letters = [];
 	}
 	io.emit("update-scoreboard", room.points);
 	if (turn === userCount) {
@@ -318,14 +321,14 @@ function revealLetter(io) {
 	while (loop) {
 		letterIndex = Math.floor(Math.random() * (room.currentWord.length - 1 - 0));
 		// logger.info(letterIndex);
-		if (indexes.indexOf(letterIndex) === -1) {
-			indexes.push(letterIndex);
+		if (cache.indexes.indexOf(letterIndex) === -1) {
+			cache.indexes.push(letterIndex);
 			loop = false;
 			break;
 		}
 	}
 
 	letter = room.currentWord.charAt(letterIndex);
-	letters.push(letter);
+	cache.letters.push(letter);
 	io.emit("letter", { letter, index: letterIndex });
 }

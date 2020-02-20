@@ -1,3 +1,4 @@
+/* eslint-disable no-inner-declarations */
 /* eslint-disable no-alert */
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
@@ -133,7 +134,6 @@ window.addEventListener("load", () => {
 	const selectWord = (data) => {
 		console.log("selected");
 		console.log("You can draw!");
-		canDraw = true;
 		dispName.innerHTML = "Your Turn!";
 		const d1 = document.getElementById("o1");
 		const d2 = document.getElementById("o2");
@@ -148,31 +148,52 @@ window.addEventListener("load", () => {
 		d2.innerHTML = data.w2;
 		d3.innerHTML = data.w3;
 
-		const selectBtn = document.getElementById("chose1");
-
+		let selected = false;
 		if (data.round === 0) {
+			setTimeout(autoSelect, 10000);
+
+			function autoSelect() {
+				if (selected) return;
+				selectBtn1.click();
+			}
+
 			const selectBtn1 = document.getElementById("chose1");
 			selectBtn1.style.display = "inline";
 			selectBtn1.addEventListener("click", () => {
 				selectBtn1.style.display = "none";
 				socket.emit("word-selected", { word: se.value });
 				wh.innerHTML = `The word you selected is ${se.value}`;
+				selected = true;
 			});
 		} else if (data.round === 1) {
+			setTimeout(autoSelect, 10000);
+
+			function autoSelect() {
+				if (selected) return;
+				selectBtn2.click();
+			}
 			const selectBtn2 = document.getElementById("chose2");
 			selectBtn2.style.display = "inline";
 			selectBtn2.addEventListener("click", () => {
 				selectBtn2.style.display = "none";
 				socket.emit("word-selected", { word: se.value });
 				wh.innerHTML = `The word you selected is ${se.value}`;
+				selected = true;
 			});
 		} else if (data.round === 2) {
+			setTimeout(autoSelect, 10000);
+
+			function autoSelect() {
+				if (selected) return;
+				selectBtn3.click();
+			}
 			const selectBtn3 = document.getElementById("chose3");
 			selectBtn3.style.display = "inline";
 			selectBtn3.addEventListener("click", () => {
 				selectBtn3.style.display = "none";
 				socket.emit("word-selected", { word: se.value });
 				wh.innerHTML = `The word you selected is ${se.value}`;
+				selected = true;
 			});
 		}
 	};
@@ -184,6 +205,9 @@ window.addEventListener("load", () => {
 	const dispTime = document.getElementById("timer");
 
 	socket.on("word-selected", (data) => {
+		if (name === data.name) {
+			canDraw = true;
+		}
 		const timeStamp = new Date();
 		const ct = Math.floor(timeStamp.getTime() / 1000);
 		console.log(`Time of round start: ${data.time}`);
