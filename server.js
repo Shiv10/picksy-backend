@@ -3,13 +3,16 @@ require("dotenv").config();
 
 const express = require("express");
 const bodyparser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
 
 const app = express();
 const server = require("http").Server(app);
 const io = require("./routes/game").listen(server);
 
 const { logger } = require("./tools/loggers");
-const routes = require("./routes/routes.js");
+// const register = require("./routes/register.js");
+const rooms = require("./routes/room");
 
 const port = parseInt(process.env.PORT, 10) || 3001;
 
@@ -22,8 +25,11 @@ if (!process.env.JWT_SECRET) {
 app.set("view engine", "ejs");
 app.set("views", `${__dirname}/views`);
 app.use("/static", express.static("static"));
+app.use(cookieParser());
+app.use(session({ secret: "Shh, its a secret!" }));
 app.use(bodyparser.json());
-app.use("/", routes);
+app.use("/rooms", rooms);
+
 // app.use(
 // bodyparser.urlencoded({
 // extended: true,
@@ -34,7 +40,6 @@ app.use("/", routes);
 app.get("/", (req, res) => {
 	res.render("landingPage");
 });
-
 app.listen(port, () => {
 	logger.info(`Express server started at port: ${port}`);
 });
