@@ -1,8 +1,5 @@
-window.addEventListener("load", () => {
-	const login = document.getElementById("login");
-	login.addEventListener("click", () => {
-		fetch("/rooms").then(() => {
-			console.log("Welcome to rooms page");
-		});
+$(document).ready(() => {
+	$("#login").click(() => {
+		window.location.replace("/rooms");
 	});
 });

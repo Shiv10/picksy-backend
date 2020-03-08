@@ -13,8 +13,6 @@ router.get("/", (req, res) => {
 		exp: 1584037452,
 	};
 	res.render("roomSelection", { name: req.session.user.name });
-	console.log("File sent");
-	res.end();
 });
 
 module.exports = router;
