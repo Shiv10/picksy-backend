@@ -11,8 +11,14 @@ router.get("/", (req, res) => {
 		scope: ["user", "csi"],
 		iat: 1583605452,
 		exp: 1584037452,
+		room: "",
 	};
-	res.render("roomSelection", { name: req.session.user.name });
+	res.render("roomSelection", { username: req.session.user.username });
+});
+
+router.post("/", (req, res) => {
+	req.session.user.room = req.body.room;
+	res.end();
 });
 
 module.exports = router;

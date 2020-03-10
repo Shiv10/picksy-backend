@@ -3,7 +3,11 @@ const responseSchema = require("./response.schema");
 const db = require("./db");
 
 const gameSchema = new mongoose.Schema({
-	reponse: {
+	drawerId: {
+		type: String,
+		required: true,
+	},
+	reponses: {
 		type: [responseSchema],
 		required: true,
 	},
@@ -16,10 +20,6 @@ const gameSchema = new mongoose.Schema({
 		default: "",
 	},
 	points: {
-		type: Number,
-		default: 0,
-	},
-	matchesPlayed: {
 		type: Number,
 		default: 0,
 	},

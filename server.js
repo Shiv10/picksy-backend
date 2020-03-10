@@ -13,6 +13,7 @@ const io = require("./routes/game").listen(server);
 const { logger } = require("./tools/loggers");
 // const register = require("./routes/register.js");
 const rooms = require("./routes/room");
+const waitingRoom = require("./routes/waiting");
 
 const port = parseInt(process.env.PORT, 10) || 3001;
 
@@ -26,16 +27,11 @@ app.set("view engine", "ejs");
 app.set("views", `${__dirname}/views`);
 app.use("/static", express.static("static"));
 app.use(cookieParser());
-app.use(session({ secret: "Shh, its a secret!" }));
+app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
+app.use(session({ secret: "Shh, its a secret!" }));
 app.use("/rooms", rooms);
-
-// app.use(
-// bodyparser.urlencoded({
-// extended: true,
-// }),
-// bodyparser.json(),
-// );
+app.use("/waitingRoom", waitingRoom);
 
 app.get("/", (req, res) => {
 	res.render("landingPage");
