@@ -76,13 +76,14 @@ window.addEventListener("load", () => {
 		ctx.strokeStyle = selectedColor.value;
 		ctx.lineWidth = 5;
 		ctx.lineCap = "round";
-
-		ctx.lineTo(e.clientX, e.clientY);
+		const x = e.clientX - 17;
+		const y = e.clientY - 17;
+		ctx.lineTo(x, y);
 		ctx.stroke();
 		ctx.beginPath();
-		ctx.moveTo(e.clientX, e.clientY);
+		ctx.moveTo(x, y);
 
-		socket.emit("draw", { x: e.clientX, y: e.clientY, color: selectedColor.value });
+		socket.emit("draw", { x, y, color: selectedColor.value });
 	}
 
 	function startPosition(e) {

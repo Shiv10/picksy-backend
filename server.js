@@ -34,7 +34,7 @@ app.use("/rooms", rooms);
 app.use("/waitingRoom", waitingRoom);
 
 app.get("/", (req, res) => {
-	res.render("landingPage");
+	res.render("index");
 });
 app.listen(port, () => {
 	logger.info(`Express server started at port: ${port}`);
