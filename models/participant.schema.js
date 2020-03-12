@@ -16,6 +16,10 @@ const participantSchema = new mongoose.Schema({
 		type: Number,
 		default: 0,
 	},
+	currentRoom: {
+		type: Number,
+		default: "",
+	},
 });
 
 const Participant = db.pic20.model("Participant", participantSchema);

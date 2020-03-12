@@ -26,10 +26,12 @@ if (!process.env.JWT_SECRET) {
 app.set("view engine", "ejs");
 app.set("views", `${__dirname}/views`);
 app.use("/static", express.static("static"));
+
 app.use(cookieParser());
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(session({ secret: "Shh, its a secret!" }));
+
 app.use("/rooms", rooms);
 app.use("/waitingRoom", waitingRoom);
 

@@ -48,7 +48,7 @@ const cache = {
 };
 
 let turn = 0;
-let turnOn = false;
+let turnOn = false; // game already begun
 
 let wordRevealInterval;
 let cleared = false;

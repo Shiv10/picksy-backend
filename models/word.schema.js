@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const wordSchema = new mongoose.Schema({
 	message: {
@@ -17,5 +17,5 @@ const wordSchema = new mongoose.Schema({
 	},
 });
 
-const Word = mongoose.model('Word', wordSchema);
+const Word = mongoose.model("Word", wordSchema);
 export default Word;

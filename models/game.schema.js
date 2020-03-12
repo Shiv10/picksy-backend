@@ -11,6 +11,10 @@ const gameSchema = new mongoose.Schema({
 		type: [responseSchema],
 		required: true,
 	},
+	drawerPoints: {
+		type: Number,
+		default: 0,
+	},
 	suggestedWords: {
 		type: [String],
 		default: [],
@@ -18,10 +22,6 @@ const gameSchema = new mongoose.Schema({
 	choosenWord: {
 		type: String,
 		default: "",
-	},
-	points: {
-		type: Number,
-		default: 0,
 	},
 });
 
