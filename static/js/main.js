@@ -215,8 +215,13 @@ window.addEventListener("load", () => {
 	const checkFill = (e) => {
 		if (!fill) return;
 		fill = false;
+		socket.emit("fill", { x: e.clientX - 17, y: e.clientY - 17, color: selectedColor.value });
 		fillColor({ x: e.clientX - 17, y: e.clientY - 17 }, selectedColor.value);
 	};
+
+	socket.on("fill", (data) => {
+		fillColor({ x: data.x, y: data.y }, data.color);
+	});
 
 	const fillClick = () => {
 		if (!fill) return;

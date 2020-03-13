@@ -124,6 +124,10 @@ module.exports.listen = (app) => {
 			}
 		});
 
+		socket.on("fill", (data) => {
+			socket.broadcast.emit("fill", data);
+		});
+
 		socket.on("draw", (data) => {
 			cache.drawStackX.push(data.x);
 			cache.drawStackY.push(data.y);
