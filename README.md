@@ -1,9 +1,9 @@
 <div align="center">
-  <h1>CSI-Pictionary</h1>
+  <h1>Piksy</h1>
 </div>
 
 <div align="center" style="color: #6f7371">
-  <i>Online pictionary game for Codespace 2020</i><br><br>
+  <i>Online pictionary game</i><br><br>
 </div>
 
 <div align="center">
@@ -26,10 +26,10 @@
 
 </div>
 
-`CSI-Pictionary` is an online pictionary platform. Here people would e joining rooms (only 1 room for now), and the game would begin by selecting a participant at random, who will be given an option to select a word from set of 3 words. After choosing this, he may start drawing, given 80 secs per drawing. <br><br>
+`Piksy` is an online pictionary platform. Here people would be joining rooms (only 1 room for now), and the game would begin by selecting a participant at random, who will be given an option to select a word from set of 3 words. After choosing this, he may start drawing, given 80 secs per drawing. <br><br>
 Other participants would be looking at the board on their screen in realtime. They have to guess the word being drawn. Points will be awarded on first right answer basis. <br><br>
 This will go on for every participant in the room. After everyone's turn, round 1 will be over. There would be 3 rounds per match.<br><br>
-Built using expressJS, socketio and mongoose
+Built using ExpressJS, Socket.io. Mongoose and Redis for Db.
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
@@ -130,7 +130,7 @@ endGame.js          |   Logic for ending round, match, abrupt quitting and updat
     * fix: When a bug is fixed
     * refactor: When the code is refactored
 
-> Note: Specify WIP: `Pull Request Message` if a Merge Request is made, but the branch is still not ready to merge. <br>Example: `feat: remove timeLimit constraint [WIP]`
+> Note: Specify WIP: `Pull Request Message` if a Merge Request is made, but the branch is still not ready to merge. <br>Example: `feat [WIP]: remove timeLimit constraint`
 
 ## Tutorials
 
