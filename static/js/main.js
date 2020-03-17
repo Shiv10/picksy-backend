@@ -40,10 +40,7 @@ window.addEventListener("load", () => {
 	const fillBtn = document.getElementById("fill");
 	const selectedColor = document.getElementById("colorPicker");
 	let fill = false;
-	let imgData;
-	let fillStackXY = [];
-	let fillStackTC = [];
-	let fillStackFC = [];
+
 	function send() {
 		const timeStamp = new Date();
 		const ct = Math.floor(timeStamp.getTime() / 1000);
@@ -130,87 +127,9 @@ window.addEventListener("load", () => {
 	});
 
 	const fillColor = (point, color) => {
-		// console.log(point.x);
-		imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		// console.log(color);
-		const targetColor = getPixel(point);
-		const fcolor = hexToRgba(color);
-
-		floodFill(point, targetColor, fcolor);
-		fillShape();
+		// eslint-disable-next-line no-new
+		new Fill(canvas, point, color);
 	};
-
-	const floodFill = (point, targetColor, fcolor) => {
-		if (colorsMatch(targetColor, fcolor)) return;
-		const currentColor = getPixel(point);
-
-		if (colorsMatch(currentColor, targetColor)) {
-			setPixel(point, fcolor);
-			fillStackXY.push([point.x - 1, point.y]); // , targetColor, fcolor);
-			fillStackTC.push(targetColor);
-			fillStackFC.push(fcolor);
-			fillStackXY.push([point.x + 1, point.y]);
-			fillStackTC.push(targetColor);
-			fillStackFC.push(fcolor);
-			fillStackXY.push([point.x, point.y - 1]); // targetColor, fcolor);
-			fillStackTC.push(targetColor);
-			fillStackFC.push(fcolor);
-			fillStackXY.push([point.x, point.y + 1]); // , targetColor, fcolor);
-			fillStackTC.push(targetColor);
-			fillStackFC.push(fcolor);
-		}
-	};
-
-	function fillShape() {
-		if (fillStackXY.length) {
-			const range = fillStackXY.length;
-			let point;
-			for (let i = 0; i < range; i += 1) {
-				point = {
-					x: fillStackXY[i][0],
-					y: fillStackXY[i][1],
-				};
-				floodFill(point, fillStackTC[i], fillStackFC[i]);
-			}
-			fillStackXY.splice(0, range);
-			fillStackTC.splice(0, range);
-			fillStackFC.splice(0, range);
-			fillShape();
-		} else {
-			ctx.putImageData(imgData, 0, 0);
-			fillStackXY = [];
-			fillStackTC = [];
-			fillStackFC = [];
-		}
-	}
-
-	function getPixel(point) {
-		let arr;
-		if (point.x < 0 || point.y < 0 || point.x >= imgData.width || point.y >= imgData.height) {
-			arr = [-1, -1, -1, -1];
-		} else {
-			const offset = (point.y * imgData.width + point.x) * 4;
-			arr = [imgData.data[offset + 0], imgData.data[offset + 1], imgData.data[offset + 2], imgData.data[offset + 3]];
-		}
-		return arr;
-	}
-
-	function hexToRgba(hex) {
-		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), 255];
-	}
-
-	function colorsMatch(color1, color2) {
-		return color1[0] === color2[0] && color1[1] === color2[1] && color1[2] === color2[2] && color1[3] === color2[3];
-	}
-
-	function setPixel(point, fcolor) {
-		const offset = (point.y * imgData.width + point.x) * 4;
-		imgData.data[offset + 0] = fcolor[0];
-		imgData.data[offset + 1] = fcolor[1];
-		imgData.data[offset + 2] = fcolor[2];
-		imgData.data[offset + 3] = fcolor[3];
-	}
 
 	const checkFill = (e) => {
 		if (!fill) return;
@@ -398,3 +317,101 @@ window.addEventListener("load", () => {
 
 	socket.on("update-scoreboard", updateScoreboard);
 });
+
+// CLASS FOR FILLING FUNCTINALITY!
+
+class Fill {
+	constructor(canvas, point, color) {
+		this.ctx = canvas.getContext("2d");
+		this.point = point;
+		this.color = color;
+		this.fillStackXY = [];
+		this.fillStackTC = [];
+		this.fillStackFC = [];
+		this.imgData = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const targetColor = this.getPixel(point);
+		const fcolor = this.hexToRgba(color);
+
+		this.floodFill(point, targetColor, fcolor);
+		this.fillShape();
+	}
+
+	floodFill(point, targetColor, fcolor) {
+		if (this.colorsMatch(targetColor, fcolor)) return;
+		const currentColor = this.getPixel(point);
+
+		if (this.colorsMatch(currentColor, targetColor)) {
+			this.setPixel(point, fcolor);
+			this.fillStackXY.push([point.x - 1, point.y]); // , targetColor, fcolor);
+			this.fillStackTC.push(targetColor);
+			this.fillStackFC.push(fcolor);
+			this.fillStackXY.push([point.x + 1, point.y]);
+			this.fillStackTC.push(targetColor);
+			this.fillStackFC.push(fcolor);
+			this.fillStackXY.push([point.x, point.y - 1]); // targetColor, fcolor);
+			this.fillStackTC.push(targetColor);
+			this.fillStackFC.push(fcolor);
+			this.fillStackXY.push([point.x, point.y + 1]); // , targetColor, fcolor);
+			this.fillStackTC.push(targetColor);
+			this.fillStackFC.push(fcolor);
+		}
+	}
+
+	fillShape() {
+		if (this.fillStackXY.length) {
+			const range = this.fillStackXY.length;
+			let point;
+			for (let i = 0; i < range; i += 1) {
+				point = {
+					x: this.fillStackXY[i][0],
+					y: this.fillStackXY[i][1],
+				};
+				this.floodFill(point, this.fillStackTC[i], this.fillStackFC[i]);
+			}
+			this.fillStackXY.splice(0, range);
+			this.fillStackTC.splice(0, range);
+			this.fillStackFC.splice(0, range);
+			this.fillShape();
+		} else {
+			this.ctx.putImageData(this.imgData, 0, 0);
+			this.fillStackXY = [];
+			this.fillStackTC = [];
+			this.fillStackFC = [];
+		}
+	}
+
+	getPixel(point) {
+		let arr;
+		if (point.x < 0 || point.y < 0 || point.x >= this.imgData.width || point.y >= this.imgData.height) {
+			arr = [-1, -1, -1, -1];
+		} else {
+			const offset = (point.y * this.imgData.width + point.x) * 4;
+			arr = [
+				this.imgData.data[offset + 0],
+				this.imgData.data[offset + 1],
+				this.imgData.data[offset + 2],
+				this.imgData.data[offset + 3],
+			];
+		}
+		return arr;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	hexToRgba(hex) {
+		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), 255];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	colorsMatch(color1, color2) {
+		return color1[0] === color2[0] && color1[1] === color2[1] && color1[2] === color2[2] && color1[3] === color2[3];
+	}
+
+	setPixel(point, fcolor) {
+		const offset = (point.y * this.imgData.width + point.x) * 4;
+		this.imgData.data[offset + 0] = fcolor[0];
+		this.imgData.data[offset + 1] = fcolor[1];
+		this.imgData.data[offset + 2] = fcolor[2];
+		this.imgData.data[offset + 3] = fcolor[3];
+	}
+}
