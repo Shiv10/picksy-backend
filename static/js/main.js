@@ -85,7 +85,11 @@ window.addEventListener("load", () => {
 		ctx.beginPath();
 		ctx.moveTo(x, y);
 
-		socket.emit("draw", { x, y, color: selectedColor.value });
+		socket.emit("draw", {
+			x,
+			y,
+			color: selectedColor.value,
+		});
 	}
 
 	function startPosition(e) {

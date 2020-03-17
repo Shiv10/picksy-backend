@@ -43,6 +43,7 @@ const room = {
 const cache = {
 	drawStackX: [],
 	drawStackY: [],
+	colorStack: [],
 	indexes: [],
 	letters: [],
 };
@@ -131,6 +132,7 @@ module.exports.listen = (app) => {
 		socket.on("draw", (data) => {
 			cache.drawStackX.push(data.x);
 			cache.drawStackY.push(data.y);
+			cache.colorStack.push(data.color);
 			socket.broadcast.emit("draw", data);
 		});
 
@@ -259,7 +261,7 @@ function previousDrawing(io, name) {
 	}
 	const l = cache.drawStackX.length;
 	for (let i = 0; i < l; i += 1) {
-		io.to(drawId).emit("draw", { x: cache.drawStackX[i], y: cache.drawStackY[i] });
+		io.to(drawId).emit("draw", { x: cache.drawStackX[i], y: cache.drawStackY[i], color: cache.colorStack[i] });
 	}
 	io.to(drawId).emit("stop");
 	io.to(drawId).emit("revealed", { letters: cache.letters, indexes: cache.indexes });
