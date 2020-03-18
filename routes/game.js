@@ -39,6 +39,7 @@ const room = {
 	currentDrawerId: "",
 	points: {},
 	usersGuessed: 0,
+	usersGuessedName: [],
 };
 
 const cache = {
@@ -106,10 +107,12 @@ module.exports.listen = (app) => {
 
 		socket.on("message", (data) => {
 			if (data.text === room.currentWord && users[socket.id] !== room.currentDrawer) {
+				if (room.usersGuessedName.includes(users[socket.id])) return;
 				// eslint-disable-next-line no-undef
 				t = data.time - room.turn.timeStart;
 				room.points[users[socket.id]] += calculatePoints(data.time);
 				room.usersGuessed += 1;
+				room.usersGuessedName.push(users[socket.id]);
 				io.emit("word-guessed", { name: users[socket.id] });
 				if (room.usersGuessed === userCount - 1) {
 					io.emit("next-turn");
@@ -237,6 +240,7 @@ function turnChange(io) {
 	cache.fillStackX = [];
 	cache.fillStackY = [];
 	cache.fillColor = [];
+	room.usersGuessedName = [];
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
 	room.usersGuessed = 0;
@@ -294,6 +298,7 @@ function drawerDisconnected(io, timeout) {
 	cache.fillStackX = [];
 	cache.fillStackY = [];
 	cache.fillColor = [];
+	room.usersGuessedName = [];
 	turn += 1;
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
