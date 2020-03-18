@@ -23,6 +23,7 @@ const words = [
 	"laptop",
 	"window",
 	"shoe",
+	"play station",
 ];
 let userCount = 0;
 
@@ -44,6 +45,9 @@ const cache = {
 	drawStackX: [],
 	drawStackY: [],
 	colorStack: [],
+	fillStackX: [],
+	fillStackY: [],
+	fillColor: [],
 	indexes: [],
 	letters: [],
 };
@@ -126,6 +130,9 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("fill", (data) => {
+			cache.fillStackX.push(data.x);
+			cache.fillStackY.push(data.y);
+			cache.fillColor.push(data.color);
 			socket.broadcast.emit("fill", data);
 		});
 
@@ -226,6 +233,10 @@ function turnChange(io) {
 	room.currentWord = "";
 	cache.drawStackX = [];
 	cache.drawStackY = [];
+	cache.colorStack = [];
+	cache.fillStackX = [];
+	cache.fillStackY = [];
+	cache.fillColor = [];
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
 	room.usersGuessed = 0;
@@ -263,6 +274,10 @@ function previousDrawing(io, name) {
 	for (let i = 0; i < l; i += 1) {
 		io.to(drawId).emit("draw", { x: cache.drawStackX[i], y: cache.drawStackY[i], color: cache.colorStack[i] });
 	}
+
+	for (let i = 0; i < cache.fillStackX.length; i += 1) {
+		io.to(drawId).emit("fill", { x: cache.fillStackX[i], y: cache.fillStackY[i], color: cache.fillColor[i] });
+	}
 	io.to(drawId).emit("stop");
 	io.to(drawId).emit("revealed", { letters: cache.letters, indexes: cache.indexes });
 }
@@ -275,6 +290,10 @@ function drawerDisconnected(io, timeout) {
 	logger.info("turn over!");
 	cache.drawStackX = [];
 	cache.drawStackY = [];
+	cache.colorStack = [];
+	cache.fillStackX = [];
+	cache.fillStackY = [];
+	cache.fillColor = [];
 	turn += 1;
 	room.points[room.currentDrawer] += Math.floor(room.turn.timeTotal / (userCount - 1)) * constants.drawerPointFactor;
 	room.turn.timeTotal = 0;
