@@ -13,7 +13,7 @@ $(document).ready(() => {
 			complete: () => {
 				// called when complete
 				console.log("process complete");
-				window.location.replace("/waitingRoom");
+				window.location.replace("/index");
 			},
 		});
 		count += 1;

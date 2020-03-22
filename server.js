@@ -14,6 +14,7 @@ const { logger } = require("./tools/loggers");
 // const register = require("./routes/register.js");
 const rooms = require("./routes/room");
 const waitingRoom = require("./routes/waiting");
+const index = require("./routes/index");
 
 const port = parseInt(process.env.PORT, 10) || 3001;
 
@@ -34,9 +35,10 @@ app.use(session({ secret: "Shh, its a secret!" }));
 
 app.use("/rooms", rooms);
 app.use("/waitingRoom", waitingRoom);
+app.use("/index", index);
 
 app.get("/", (req, res) => {
-	res.render("index");
+	res.render("landingPage");
 });
 app.listen(port, () => {
 	logger.info(`Express server started at port: ${port}`);

@@ -1,3 +1,4 @@
+/* eslint-disable quote-props */
 /* eslint-disable linebreak-style */
 /* eslint-disable no-use-before-define */
 const socketio = require("socket.io");
@@ -59,12 +60,140 @@ const rooms = {
 		users: {},
 		keys: [],
 	},
+	room2: {
+		userCount: 0,
+		roundNumber: 0,
+		turn: {
+			start: false,
+			timeStart: 0.0,
+			timeTotal: 0,
+		},
+		currentWord: "",
+		currentDrawer: "",
+		currentDrawerId: "",
+		points: {},
+		usersGuessed: 0,
+		usersGuessedName: [],
+		turnNumber: 0,
+		turnOn: false,
+		wordRevealInterval: null,
+		timeout: null,
+		cleared: false,
+		cache: {
+			drawStackX: [],
+			drawStackY: [],
+			colorStack: [],
+			fillStackX: [],
+			fillStackY: [],
+			fillColor: [],
+			indexes: [],
+			letters: [],
+		},
+		users: {},
+		keys: [],
+	},
+	room3: {
+		userCount: 0,
+		roundNumber: 0,
+		turn: {
+			start: false,
+			timeStart: 0.0,
+			timeTotal: 0,
+		},
+		currentWord: "",
+		currentDrawer: "",
+		currentDrawerId: "",
+		points: {},
+		usersGuessed: 0,
+		usersGuessedName: [],
+		turnNumber: 0,
+		turnOn: false,
+		wordRevealInterval: null,
+		timeout: null,
+		cleared: false,
+		cache: {
+			drawStackX: [],
+			drawStackY: [],
+			colorStack: [],
+			fillStackX: [],
+			fillStackY: [],
+			fillColor: [],
+			indexes: [],
+			letters: [],
+		},
+		users: {},
+		keys: [],
+	},
+	room4: {
+		userCount: 0,
+		roundNumber: 0,
+		turn: {
+			start: false,
+			timeStart: 0.0,
+			timeTotal: 0,
+		},
+		currentWord: "",
+		currentDrawer: "",
+		currentDrawerId: "",
+		points: {},
+		usersGuessed: 0,
+		usersGuessedName: [],
+		turnNumber: 0,
+		turnOn: false,
+		wordRevealInterval: null,
+		timeout: null,
+		cleared: false,
+		cache: {
+			drawStackX: [],
+			drawStackY: [],
+			colorStack: [],
+			fillStackX: [],
+			fillStackY: [],
+			fillColor: [],
+			indexes: [],
+			letters: [],
+		},
+		users: {},
+		keys: [],
+	},
+	room5: {
+		userCount: 0,
+		roundNumber: 0,
+		turn: {
+			start: false,
+			timeStart: 0.0,
+			timeTotal: 0,
+		},
+		currentWord: "",
+		currentDrawer: "",
+		currentDrawerId: "",
+		points: {},
+		usersGuessed: 0,
+		usersGuessedName: [],
+		turnNumber: 0,
+		turnOn: false,
+		wordRevealInterval: null,
+		timeout: null,
+		cleared: false,
+		cache: {
+			drawStackX: [],
+			drawStackY: [],
+			colorStack: [],
+			fillStackX: [],
+			fillStackY: [],
+			fillColor: [],
+			indexes: [],
+			letters: [],
+		},
+		users: {},
+		keys: [],
+	},
 };
 
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
-	let timeout;
 	io.on("connection", (socket) => {
+		logger.info(socket.handshake.query.userRoom);
 		socket.on("new user", (name) => {
 			logger.info("user connected");
 			rooms.room1.users[socket.id] = name;
@@ -171,7 +300,7 @@ module.exports.listen = (app) => {
 			if (rooms.room1.users[socket.id] === rooms.room1.currentDrawer && rooms.room1.userCount > 1) {
 				delete rooms.room1.users[socket.id];
 				logger.info("Drawer disconnected!");
-				drawerDisconnected(io, timeout);
+				drawerDisconnected(io, rooms.room1.timeout);
 			} else {
 				delete rooms.room1.users[socket.id];
 			}
@@ -278,11 +407,19 @@ function previousDrawing(io, name) {
 	}
 	const l = rooms.room1.cache.drawStackX.length;
 	for (let i = 0; i < l; i += 1) {
-		io.to(drawId).emit("draw", { x: rooms.room1.cache.drawStackX[i], y: rooms.room1.cache.drawStackY[i], color: rooms.room1.cache.colorStack[i] });
+		io.to(drawId).emit("draw", {
+			x: rooms.room1.cache.drawStackX[i],
+			y: rooms.room1.cache.drawStackY[i],
+			color: rooms.room1.cache.colorStack[i],
+		});
 	}
 
 	for (let i = 0; i < rooms.room1.cache.fillStackX.length; i += 1) {
-		io.to(drawId).emit("fill", { x: rooms.room1.cache.fillStackX[i], y: rooms.room1.cache.fillStackY[i], color: rooms.room1.cache.fillColor[i] });
+		io.to(drawId).emit("fill", {
+			x: rooms.room1.cache.fillStackX[i],
+			y: rooms.room1.cache.fillStackY[i],
+			color: rooms.room1.cache.fillColor[i],
+		});
 	}
 	io.to(drawId).emit("stop");
 	io.to(drawId).emit("revealed", { letters: rooms.room1.cache.letters, indexes: rooms.room1.cache.indexes });

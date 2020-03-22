@@ -4,20 +4,21 @@
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
 
-// eslint-disable-next-line no-undef
-const socket = io(`${window.location.hostname}:3002`);
-let name = "";
-
-// eslint-disable-next-line no-constant-condition
-while (true) {
-	name = prompt("Enter your name");
-	if (name !== "") {
-		socket.emit("new user", name);
-		break;
-	}
-}
-
 window.addEventListener("load", () => {
+	const room = document.getElementById("getRoom");
+	// eslint-disable-next-line no-undef
+	const socket = io(`${window.location.hostname}:3002`, { query: `userRoom=${room.innerHTML}` });
+	let name = "";
+
+	// eslint-disable-next-line no-constant-condition
+	while (true) {
+		name = prompt("Enter your name");
+		if (name !== "") {
+			socket.emit("new user", name);
+			break;
+		}
+	}
+
 	if (name === null) {
 		const mainDiv = document.getElementById("main");
 		const disconnectMessage = document.getElementById("no-name");
