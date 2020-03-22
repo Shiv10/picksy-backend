@@ -5,16 +5,17 @@
 /* eslint-disable no-use-before-define */
 
 window.addEventListener("load", () => {
-	const room = document.getElementById("getRoom");
+	const getRoom = document.getElementById("getRoom");
+	const room = getRoom.innerHTML;
 	// eslint-disable-next-line no-undef
-	const socket = io(`${window.location.hostname}:3002`, { query: `userRoom=${room.innerHTML}` });
+	const socket = io(`${window.location.hostname}:3002`, { query: `userRoom=${room}` });
 	let name = "";
 
 	// eslint-disable-next-line no-constant-condition
 	while (true) {
 		name = prompt("Enter your name");
 		if (name !== "") {
-			socket.emit("new user", name);
+			socket.emit("new user", { name, room });
 			break;
 		}
 	}
@@ -46,7 +47,7 @@ window.addEventListener("load", () => {
 		const timeStamp = new Date();
 		const ct = Math.floor(timeStamp.getTime() / 1000);
 		if (msg.value === "") return;
-		socket.emit("message", { text: msg.value, time: ct });
+		socket.emit("message", { text: msg.value, time: ct, room });
 		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
 		msg.value = "";
 	}
@@ -90,6 +91,7 @@ window.addEventListener("load", () => {
 			x,
 			y,
 			color: selectedColor.value,
+			room,
 		});
 	}
 
@@ -101,7 +103,7 @@ window.addEventListener("load", () => {
 	function finishedPosition() {
 		painting = false;
 		ctx.beginPath();
-		socket.emit("stop");
+		socket.emit("stop", { room });
 	}
 
 	socket.on("draw", (data) => {
@@ -123,7 +125,7 @@ window.addEventListener("load", () => {
 	clrbtn.addEventListener("click", clearCanvas);
 	function clearCanvas() {
 		if (!canDraw) return;
-		socket.emit("canvas-cleared");
+		socket.emit("canvas-cleared", { room });
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 	}
 
@@ -139,7 +141,12 @@ window.addEventListener("load", () => {
 	const checkFill = (e) => {
 		if (!fill) return;
 		fill = false;
-		socket.emit("fill", { x: e.clientX - 17, y: e.clientY - 17, color: selectedColor.value });
+		socket.emit("fill", {
+			x: e.clientX - 17,
+			y: e.clientY - 17,
+			color: selectedColor.value,
+			room,
+		});
 		fillColor({ x: e.clientX - 17, y: e.clientY - 17 }, selectedColor.value);
 	};
 
@@ -196,7 +203,7 @@ window.addEventListener("load", () => {
 			selectBtn1.style.display = "inline";
 			selectBtn1.addEventListener("click", () => {
 				selectBtn1.style.display = "none";
-				socket.emit("word-selected", { word: se.value });
+				socket.emit("word-selected", { word: se.value, room });
 				wh.innerHTML = `The word you selected is ${se.value}`;
 				selected = true;
 			});
@@ -211,7 +218,7 @@ window.addEventListener("load", () => {
 			selectBtn2.style.display = "inline";
 			selectBtn2.addEventListener("click", () => {
 				selectBtn2.style.display = "none";
-				socket.emit("word-selected", { word: se.value });
+				socket.emit("word-selected", { word: se.value, room });
 				wh.innerHTML = `The word you selected is ${se.value}`;
 				selected = true;
 			});
@@ -226,7 +233,7 @@ window.addEventListener("load", () => {
 			selectBtn3.style.display = "inline";
 			selectBtn3.addEventListener("click", () => {
 				selectBtn3.style.display = "none";
-				socket.emit("word-selected", { word: se.value });
+				socket.emit("word-selected", { word: se.value, room });
 				wh.innerHTML = `The word you selected is ${se.value}`;
 				selected = true;
 			});
@@ -268,7 +275,7 @@ window.addEventListener("load", () => {
 			}
 
 			if (p <= 20) {
-				socket.emit("no-more-reveal");
+				socket.emit("no-more-reveal", { room });
 			}
 		}
 	});
