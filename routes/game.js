@@ -540,15 +540,15 @@ function selectDrawer(io, room) {
 	// 2. Generates random words
 	// 3. Emits event to drawer with the random word and round number.
 	logger.info(room);
-	if (!rooms.room.turn.start) return;
+	if (!rooms[room].turn.start) return;
 
-	rooms.room.currentDrawer = Object.values(rooms.room.users)[rooms.room.turnNumber];
+	rooms[room].currentDrawer = Object.values(rooms[room].users)[rooms[room].turnNumber];
 	// logger.info(room.currentDrawer);
-	const userIds = Object.keys(rooms.room.users);
+	const userIds = Object.keys(rooms[room].users);
 
-	for (let i = 0; i < rooms.room.userCount; i += 1) {
-		if (rooms.room.users[userIds[i]] === rooms.room.currentDrawer) {
-			rooms.room.currentDrawerId = userIds[i];
+	for (let i = 0; i < rooms[room].userCount; i += 1) {
+		if (rooms[room].users[userIds[i]] === rooms[room].currentDrawer) {
+			rooms[room].currentDrawerId = userIds[i];
 			break;
 		}
 	}
@@ -559,28 +559,28 @@ function selectDrawer(io, room) {
 		.map((a) => a.x)
 		.slice(0, constants.wordSelOptions);
 
-	io.to(rooms.room.currentDrawerId).emit("word-selection", {
+	io.to(rooms[room].currentDrawerId).emit("word-selection", {
 		w1: shuffledWords[0],
 		w2: shuffledWords[1],
 		w3: shuffledWords[2],
-		round: rooms.room.roundNumber,
+		round: rooms[room].roundNumber,
 	});
-	rooms.room.turn.start = false;
+	rooms[room].turn.start = false;
 }
 
 function roundChange(io, room) {
 	// 1. Changer round, shifts to next round.
 	// 2. Cleares canvas
 
-	io.to(rooms.room.currentDrawerId).emit("turn-end");
+	io.to(rooms[room].currentDrawerId).emit("turn-end");
 	io.to(room).emit("canvas-cleared");
 	io.to(room).emit("round-end");
 	logger.info("Round end!");
-	rooms.room.roundNumber += 1;
-	if (rooms.room.roundNumber < constants.roundNum) {
-		rooms.room.turnNumber = 0;
-		rooms.room.turn.start = true;
-		rooms.room.turnOn = true;
+	rooms[room].roundNumber += 1;
+	if (rooms[room].roundNumber < constants.roundNum) {
+		rooms[room].turnNumber = 0;
+		rooms[room].turn.start = true;
+		rooms[room].turnOn = true;
 		selectDrawer(io, room);
 	}
 }
@@ -590,32 +590,32 @@ function turnChange(io, room) {
 	// 2. When all clients have had turns, then round is changed.
 
 	logger.info("turn over!");
-	rooms.room.currentWord = "";
-	rooms.room.cache.drawStackX = [];
-	rooms.room.cache.drawStackY = [];
-	rooms.room.cache.colorStack = [];
-	rooms.room.cache.fillStackX = [];
-	rooms.room.cache.fillStackY = [];
-	rooms.room.cache.fillColor = [];
-	rooms.room.usersGuessedName = [];
-	rooms.room.points[rooms.room.currentDrawer] += Math.floor(rooms.room.turn.timeTotal / (rooms.room.userCount - 1)) * constants.drawerPointFactor;
-	rooms.room.turn.timeTotal = 0;
-	rooms.room.usersGuessed = 0;
-	if (!rooms.room.cleared) {
-		clearInterval(rooms.room.wordRevealInterval);
-		rooms.room.cleared = true;
-		rooms.room.cache.indexes = [];
-		rooms.room.cache.letters = [];
+	rooms[room].currentWord = "";
+	rooms[room].cache.drawStackX = [];
+	rooms[room].cache.drawStackY = [];
+	rooms[room].cache.colorStack = [];
+	rooms[room].cache.fillStackX = [];
+	rooms[room].cache.fillStackY = [];
+	rooms[room].cache.fillColor = [];
+	rooms[room].usersGuessedName = [];
+	rooms[room].points[rooms[room].currentDrawer] += Math.floor(rooms[room].turn.timeTotal / (rooms[room].userCount - 1)) * constants.drawerPointFactor;
+	rooms[room].turn.timeTotal = 0;
+	rooms[room].usersGuessed = 0;
+	if (!rooms[room].cleared) {
+		clearInterval(rooms[room].wordRevealInterval);
+		rooms[room].cleared = true;
+		rooms[room].cache.indexes = [];
+		rooms[room].cache.letters = [];
 	}
-	io.to(room).emit("update-scoreboard", rooms.room.points);
-	rooms.room.turnNumber += 1;
-	if (rooms.room.turnNumber === rooms.room.userCount) {
+	io.to(room).emit("update-scoreboard", rooms[room].points);
+	rooms[room].turnNumber += 1;
+	if (rooms[room].turnNumber === rooms[room].userCount) {
 		roundChange(io, room);
-		rooms.room.turnOn = false;
+		rooms[room].turnOn = false;
 	} else {
-		io.to(rooms.room.currentDrawerId).emit("turn-end");
+		io.to(rooms[room].currentDrawerId).emit("turn-end");
 		io.to(room).emit("canvas-cleared");
-		rooms.room.turn.start = true;
+		rooms[room].turn.start = true;
 		selectDrawer(io, room);
 	}
 }
