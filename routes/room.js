@@ -1,6 +1,10 @@
 const router = require("express").Router();
 
 router.get("/", (req, res) => {
+	if (req.query.session !== undefined) {
+		res.render("roomSelection", { username: req.session.user.username });
+		return;
+	}
 	req.session.user = {
 		name: "Rohan Mukherjee",
 		username: "roerohan",

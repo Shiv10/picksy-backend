@@ -264,6 +264,13 @@ window.addEventListener("load", () => {
 		// Timer funtionality
 		const t = setInterval(countDown, 1000);
 		let p = 81 - (ct - data.time);
+		socket.on("leave", () => {
+			dispTime.innerHTML = "Everyone left! What are you doing here?";
+			dispName.innerHTML = "";
+			wordCon.innerHTML = "";
+			clearInterval(t);
+			window.location.replace("/rooms?session=false");
+		});
 		function countDown() {
 			p -= 1;
 			dispTime.innerHTML = p;
@@ -289,6 +296,13 @@ window.addEventListener("load", () => {
 
 	socket.on("round-end", () => {
 		dispTime.innerHTML = "<strong>Round has ended!</strong>";
+	});
+
+	socket.on("leave", () => {
+		dispTime.innerHTML = "Everyone left! What are you doing here?";
+		dispName.innerHTML = "";
+		wordCon.innerHTML = "";
+		window.location.replace("/rooms?session=false");
 	});
 
 	socket.on("word-guessed", (data) => {

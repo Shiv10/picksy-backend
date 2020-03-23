@@ -521,6 +521,11 @@ module.exports.listen = (app) => {
 		socket.on("disconnect", () => {
 			const userRoom = players[socket.id];
 			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
+			if (rooms[userRoom].userCount <= 2) {
+				resetRoom(userRoom);
+				io.to(userRoom).emit("leave");
+				return;
+			}
 			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard
 			// on disconnection, but we can add this functionality
 			rooms[userRoom].userCount -= 1;
@@ -670,6 +675,8 @@ function drawerDisconnected(io, timeout, room) {
 	rooms[room].cache.fillStackY = [];
 	rooms[room].cache.fillColor = [];
 	rooms[room].usersGuessedName = [];
+	rooms[room].cache.indexes = [];
+	rooms[room].cache.letters = [];
 	rooms[room].turnNumber += 1;
 	rooms[room].points[rooms[room].currentDrawer] += Math.floor(rooms[room].turn.timeTotal / (rooms[room].userCount - 1)) * constants.drawerPointFactor;
 	rooms[room].turn.timeTotal = 0;
@@ -732,4 +739,38 @@ function revealLetter(io, room) {
 	letter = rooms[room].currentWord.charAt(letterIndex);
 	rooms[room].cache.letters.push(letter);
 	io.to(room).emit("letter", { letter, index: letterIndex });
+}
+
+function resetRoom(room) {
+	rooms[room].userCount -= 1;
+	rooms[room].roundNumber = 0;
+	rooms[room].turn.start = false;
+	rooms[room].turn.timeStart = 0.0;
+	rooms[room].turn.timeTotal = 0;
+	rooms[room].currentWord = "";
+	rooms[room].currentDrawer = "";
+	rooms[room].currentDrawerId = "";
+	rooms[room].points = {};
+	rooms[room].usersGuessed = 0;
+	rooms[room].usersGuessedName = [];
+	rooms[room].turnNumber = 0;
+	rooms[room].turnOn = false;
+	clearInterval(rooms[room].wordRevealInterval);
+	rooms[room].wordRevealInterval = null;
+	clearTimeout(rooms[room].timeout);
+	rooms[room].timeout = null;
+	rooms[room].cleared = false;
+	rooms[room].cache.drawStackX = [];
+	rooms[room].cache.drawStackY = [];
+	rooms[room].cache.colorStack = [];
+	rooms[room].cache.fillStackX = [];
+	rooms[room].cache.fillStackY = [];
+	rooms[room].cache.fillColor = [];
+	rooms[room].usersGuessedName = [];
+	rooms[room].cache.indexes = [];
+	rooms[room].cache.letters = [];
+	rooms[room].keys = [];
+	if (rooms[room].userCount === 0) {
+		rooms[room].users = {};
+	}
 }
