@@ -7,7 +7,7 @@ const constants = require("../tools/constants");
 
 const { logger } = require("../tools/loggers");
 
-// const users = {}; // socket_id -> username
+const players = {}; // socket_id -> room
 
 // let keys = [];
 const words = [
@@ -421,6 +421,7 @@ module.exports.listen = (app) => {
 		socket.join(room);
 		socket.on("new user", (data) => {
 			logger.info("user connected");
+			players[socket.id] = data.room;
 			rooms[data.room].users[socket.id] = data.name;
 			rooms[data.room].keys = Object.values(rooms[data.room].users);
 			rooms[data.room].userCount += 1;
@@ -466,7 +467,7 @@ module.exports.listen = (app) => {
 				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
 				// eslint-disable-next-line no-undef
 				t = data.time - rooms[data.room].turn.timeStart;
-				rooms[data.room].points[rooms[data.room].users[socket.id]] += calculatePoints(data.time);
+				rooms[data.room].points[rooms[data.room].users[socket.id]] += calculatePoints(data.time, data.room);
 				rooms[data.room].usersGuessed += 1;
 				rooms[data.room].usersGuessedName.push(rooms[data.room].users[socket.id]);
 				io.emit("word-guessed", { name: rooms[data.room].users[socket.id] });
@@ -476,7 +477,7 @@ module.exports.listen = (app) => {
 					turnChange(io, data.room);
 				}
 			} else {
-				const similarity = checkSimilarity(data.text);
+				const similarity = checkSimilarity(data.text, data.room);
 				if (similarity >= 0.55) {
 					io.to(data.room).emit("similar-word", { text: data.text });
 				} else {
@@ -518,16 +519,17 @@ module.exports.listen = (app) => {
 		});
 
 		socket.on("disconnect", () => {
-			logger.info(`${rooms.room1.users[socket.id]} disconnected`);
+			const userRoom = players[socket.id];
+			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
 			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard
 			// on disconnection, but we can add this functionality
-			rooms.room1.userCount -= 1;
-			if (rooms.room1.users[socket.id] === rooms.room1.currentDrawer && rooms.room1.userCount > 1) {
-				delete rooms.room1.users[socket.id];
+			rooms[userRoom].userCount -= 1;
+			if (rooms[userRoom].users[socket.id] === rooms[userRoom].currentDrawer && rooms[userRoom].userCount > 1) {
+				delete rooms[userRoom].users[socket.id];
 				logger.info("Drawer disconnected!");
-				drawerDisconnected(io, rooms.room1.timeout);
+				drawerDisconnected(io, rooms[userRoom].timeout, userRoom);
 			} else {
-				delete rooms.room1.users[socket.id];
+				delete rooms[userRoom].users[socket.id];
 			}
 		});
 	});
@@ -625,91 +627,91 @@ function previousDrawing(io, name, currentRoom) {
 
 	let drawId = "";
 	logger.info(currentRoom);
-	const userIds = Object.keys(rooms.currentRoom.users);
-	for (let i = 0; i < rooms.currentRoom.userCount; i += 1) {
-		if (rooms.currentRoom.users[userIds[i]] === name) {
+	const userIds = Object.keys(rooms[currentRoom].users);
+	for (let i = 0; i < rooms[currentRoom].userCount; i += 1) {
+		if (rooms[currentRoom].users[userIds[i]] === name) {
 			drawId = userIds[i];
 			break;
 		}
 	}
-	const l = rooms.currentRoom.cache.drawStackX.length;
+	const l = rooms[currentRoom].cache.drawStackX.length;
 	for (let i = 0; i < l; i += 1) {
 		io.to(drawId).emit("draw", {
-			x: rooms.currentRoom.cache.drawStackX[i],
-			y: rooms.currentRoom.cache.drawStackY[i],
-			color: rooms.currentRoom.cache.colorStack[i],
+			x: rooms[currentRoom].cache.drawStackX[i],
+			y: rooms[currentRoom].cache.drawStackY[i],
+			color: rooms[currentRoom].cache.colorStack[i],
 		});
 	}
 
-	for (let i = 0; i < rooms.currentRoom.cache.fillStackX.length; i += 1) {
+	for (let i = 0; i < rooms[currentRoom].cache.fillStackX.length; i += 1) {
 		io.to(drawId).emit("fill", {
-			x: rooms.currentRoom.cache.fillStackX[i],
-			y: rooms.currentRoom.cache.fillStackY[i],
-			color: rooms.currentRoom.cache.fillColor[i],
+			x: rooms[currentRoom].cache.fillStackX[i],
+			y: rooms[currentRoom].cache.fillStackY[i],
+			color: rooms[currentRoom].cache.fillColor[i],
 		});
 	}
 	io.to(drawId).emit("stop");
 	io.to(drawId).emit("revealed", {
-		letters: rooms.currentRoom.cache.letters,
-		indexes: rooms.currentRoom.cache.indexes,
+		letters: rooms[currentRoom].cache.letters,
+		indexes: rooms[currentRoom].cache.indexes,
 	});
 }
 
-function drawerDisconnected(io, timeout) {
-	io.emit("next-turn");
+function drawerDisconnected(io, timeout, room) {
+	io.to(room).emit("next-turn");
 
-	rooms.room1.turnNumber -= 1;
-	clearTimeout(rooms.room1.timeout);
+	rooms[room].turnNumber -= 1;
+	clearTimeout(rooms[room].timeout);
 	logger.info("turn over!");
-	rooms.room1.cache.drawStackX = [];
-	rooms.room1.cache.drawStackY = [];
-	rooms.room1.cache.colorStack = [];
-	rooms.room1.cache.fillStackX = [];
-	rooms.room1.cache.fillStackY = [];
-	rooms.room1.cache.fillColor = [];
-	rooms.room1.usersGuessedName = [];
-	rooms.room1.turnNumber += 1;
-	rooms.room1.points[rooms.room1.currentDrawer] += Math.floor(rooms.room1.turn.timeTotal / (rooms.room1.userCount - 1)) * constants.drawerPointFactor;
-	rooms.room1.turn.timeTotal = 0;
-	if (!rooms.room1.cleared) {
-		clearInterval(rooms.room1.wordRevealInterval);
-		rooms.room1.cleared = true;
-		rooms.room1.cache.indexes = [];
-		rooms.room1.cache.letters = [];
+	rooms[room].cache.drawStackX = [];
+	rooms[room].cache.drawStackY = [];
+	rooms[room].cache.colorStack = [];
+	rooms[room].cache.fillStackX = [];
+	rooms[room].cache.fillStackY = [];
+	rooms[room].cache.fillColor = [];
+	rooms[room].usersGuessedName = [];
+	rooms[room].turnNumber += 1;
+	rooms[room].points[rooms[room].currentDrawer] += Math.floor(rooms[room].turn.timeTotal / (rooms[room].userCount - 1)) * constants.drawerPointFactor;
+	rooms[room].turn.timeTotal = 0;
+	if (!rooms[room].cleared) {
+		clearInterval(rooms[room].wordRevealInterval);
+		rooms[room].cleared = true;
+		rooms[room].cache.indexes = [];
+		rooms[room].cache.letters = [];
 	}
-	io.emit("update-scoreboard", rooms.room1.points);
-	if (rooms.room1.turnNumber === rooms.room1.userCount) {
-		roundChangeOnDisconnect(io);
-		rooms.room1.turnOn = false;
+	io.to(room).emit("update-scoreboard", rooms[room].points);
+	if (rooms[room].turnNumber === rooms[room].userCount) {
+		roundChangeOnDisconnect(io, room);
+		rooms[room].turnOn = false;
 	} else {
-		io.emit("canvas-cleared");
-		rooms.room1.turn.start = true;
+		io.to(room).emit("canvas-cleared");
+		rooms[room].turn.start = true;
+		selectDrawer(io, room);
+	}
+}
+
+function roundChangeOnDisconnect(io, room) {
+	io.to(room).emit("canvas-cleared");
+	io.to(room).emit("round-end");
+	logger.info(`Round end for ${room}`);
+	rooms[room].roundNumber += 1;
+	if (rooms[room].roundNumber < constants.roundNum) {
+		rooms[room].turnNumber = 0;
+		rooms[room].turn.start = true;
+		rooms[room].turnOn = true;
 		selectDrawer(io);
 	}
 }
 
-function roundChangeOnDisconnect(io) {
-	io.emit("canvas-cleared");
-	io.emit("round-end");
-	logger.info("Round end!");
-	rooms.room1.roundNumber += 1;
-	if (rooms.room1.roundNumber < constants.roundNum) {
-		rooms.room1.turnNumber = 0;
-		rooms.room1.turn.start = true;
-		rooms.room1.turnOn = true;
-		selectDrawer(io);
-	}
-}
-
-function calculatePoints(t) {
-	const time = 80 - (t - rooms.room1.turn.timeStart);
+function calculatePoints(t, room) {
+	const time = 80 - (t - rooms[room].turn.timeStart);
 	const p = time * constants.playerPointFactor;
-	rooms.room1.turn.timeTotal += time;
+	rooms[room].turn.timeTotal += time;
 	return p;
 }
 
-function checkSimilarity(text) {
-	const similarity = stringSimilarity.compareTwoStrings(rooms.room1.currentWord, text);
+function checkSimilarity(text, room) {
+	const similarity = stringSimilarity.compareTwoStrings(rooms[room].currentWord, text);
 	return similarity;
 }
 
@@ -718,16 +720,16 @@ function revealLetter(io, room) {
 	let letterIndex;
 	let loop = true;
 	while (loop) {
-		letterIndex = Math.floor(Math.random() * (rooms.room.currentWord.length - 1 - 0));
+		letterIndex = Math.floor(Math.random() * (rooms[room].currentWord.length - 1 - 0));
 		// logger.info(letterIndex);
-		if (rooms.room.cache.indexes.indexOf(letterIndex) === -1) {
-			rooms.room.cache.indexes.push(letterIndex);
+		if (rooms[room].cache.indexes.indexOf(letterIndex) === -1) {
+			rooms[room].cache.indexes.push(letterIndex);
 			loop = false;
 			break;
 		}
 	}
 
-	letter = rooms.room.currentWord.charAt(letterIndex);
-	rooms.room.cache.letters.push(letter);
+	letter = rooms[room].currentWord.charAt(letterIndex);
+	rooms[room].cache.letters.push(letter);
 	io.to(room).emit("letter", { letter, index: letterIndex });
 }
