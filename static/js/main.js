@@ -8,7 +8,7 @@ window.addEventListener("load", () => {
 	const getRoom = document.getElementById("getRoom");
 	const room = getRoom.innerHTML;
 	// eslint-disable-next-line no-undef
-	const socket = io(`${window.location.hostname}:3002`, { query: `userRoom=${room}` });
+	const socket = io(`${window.location.hostname}:3002/game`, { query: `userRoom=${room}` });
 	let name = "";
 
 	// eslint-disable-next-line no-constant-condition

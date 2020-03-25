@@ -416,7 +416,9 @@ const rooms = {
 
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
-	io.on("connection", (socket) => {
+	const game = io.of("/game");
+	game.on("connection", (socket) => {
+		logger.info("Connected to game");
 		const room = socket.handshake.query.userRoom;
 		socket.join(room);
 		socket.on("new user", (data) => {
@@ -427,12 +429,12 @@ module.exports.listen = (app) => {
 			rooms[data.room].userCount += 1;
 			rooms[data.room].points[data.name] = 0;
 			if (rooms[data.room].turnOn) {
-				previousDrawing(io, data.name, data.room);
+				previousDrawing(game, data.name, data.room);
 			}
 			if (rooms[data.room].keys.length === 2) {
-				io.emit("start-game");
+				game.to(data.room).emit("start-game");
 				rooms[data.room].turn.start = true;
-				selectDrawer(io, data.room);
+				selectDrawer(game, data.room);
 			}
 
 			if (rooms[data.room].keys.length > 2) {
@@ -452,11 +454,11 @@ module.exports.listen = (app) => {
 			rooms[data.room].currentWord = data.word;
 			const ct = Math.floor(timeStamp.getTime() / 1000);
 			rooms[data.room].turn.timeStart = ct;
-			io.to(data.room).emit("word-selected", { name: rooms[data.room].currentDrawer, time: ct });
+			game.to(data.room).emit("word-selected", { name: rooms[data.room].currentDrawer, time: ct });
 			rooms[data.room].turnOn = true;
-			rooms[data.room].timeout = setTimeout(turnChange, constants.timeOfRound, io, data.room);
+			rooms[data.room].timeout = setTimeout(turnChange, constants.timeOfRound, game, data.room);
 			const wordRevealTime = Math.floor(60 / Math.floor(rooms[data.room].currentWord.length / 2));
-			rooms[data.room].wordRevealInterval = setInterval(revealLetter, wordRevealTime * 1000, io, data.room);
+			rooms[data.room].wordRevealInterval = setInterval(revealLetter, wordRevealTime * 1000, game, data.room);
 			rooms[data.room].cleared = false;
 		});
 
@@ -470,16 +472,16 @@ module.exports.listen = (app) => {
 				rooms[data.room].points[rooms[data.room].users[socket.id]] += calculatePoints(data.time, data.room);
 				rooms[data.room].usersGuessed += 1;
 				rooms[data.room].usersGuessedName.push(rooms[data.room].users[socket.id]);
-				io.emit("word-guessed", { name: rooms[data.room].users[socket.id] });
+				game.to(data.room).emit("word-guessed", { name: rooms[data.room].users[socket.id] });
 				if (rooms[data.room].usersGuessed === rooms[data.room].userCount - 1) {
-					io.emit("next-turn");
+					game.to(data.room).emit("next-turn");
 					clearTimeout(rooms[data.room].timeout);
-					turnChange(io, data.room);
+					turnChange(game, data.room);
 				}
 			} else {
 				const similarity = checkSimilarity(data.text, data.room);
 				if (similarity >= 0.55) {
-					io.to(data.room).emit("similar-word", { text: data.text });
+					game.to(data.room).emit("similar-word", { text: data.text });
 				} else {
 					socket.to(data.room).broadcast.emit("message", {
 						name: rooms[data.room].users[socket.id],
@@ -523,7 +525,7 @@ module.exports.listen = (app) => {
 			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
 			if (rooms[userRoom].userCount <= 2) {
 				resetRoom(userRoom);
-				io.to(userRoom).emit("leave");
+				game.to(userRoom).emit("leave");
 				return;
 			}
 			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard
@@ -532,11 +534,19 @@ module.exports.listen = (app) => {
 			if (rooms[userRoom].users[socket.id] === rooms[userRoom].currentDrawer && rooms[userRoom].userCount > 1) {
 				delete rooms[userRoom].users[socket.id];
 				logger.info("Drawer disconnected!");
-				drawerDisconnected(io, rooms[userRoom].timeout, userRoom);
+				drawerDisconnected(game, rooms[userRoom].timeout, userRoom);
 			} else {
 				delete rooms[userRoom].users[socket.id];
 			}
 		});
+	});
+
+	const nsp = io.of("/room-data");
+	nsp.on("connection", (socket) => {
+		logger.info("Client Connected");
+		const playersInRooms = getRoomInfo();
+		const roomList = Object.keys(rooms);
+		socket.emit("info", { playersInRooms, roomList });
 	});
 
 	return io;
@@ -773,4 +783,13 @@ function resetRoom(room) {
 	if (rooms[room].userCount === 0) {
 		rooms[room].users = {};
 	}
+}
+
+function getRoomInfo() {
+	const roomList = Object.keys(rooms);
+	const info = [];
+	for (let i = 0; i < roomList.length; i += 1) {
+		info[i] = rooms[roomList[i]].userCount;
+	}
+	return info;
 }
