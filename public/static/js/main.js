@@ -247,6 +247,7 @@ window.addEventListener("load", () => {
 	const dispTime = document.getElementById("timer");
 
 	socket.on("word-selected", (data) => {
+		console.log(JSON.stringify(data));
 		if (name === data.name) {
 			canDraw = true;
 		}
