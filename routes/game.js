@@ -59,6 +59,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room2: {
 		userCount: 0,
@@ -91,6 +92,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room3: {
 		userCount: 0,
@@ -123,6 +125,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room4: {
 		userCount: 0,
@@ -155,6 +158,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room5: {
 		userCount: 0,
@@ -187,6 +191,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room6: {
 		userCount: 0,
@@ -219,6 +224,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room7: {
 		userCount: 0,
@@ -251,6 +257,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room8: {
 		userCount: 0,
@@ -283,6 +290,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room9: {
 		userCount: 0,
@@ -315,6 +323,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room10: {
 		userCount: 0,
@@ -347,6 +356,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room11: {
 		userCount: 0,
@@ -379,6 +389,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room12: {
 		userCount: 0,
@@ -411,11 +422,28 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 };
 
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
+	const waitingRoom = io.of("/wait");
+	waitingRoom.on("connection", (socket) => {
+		logger.info("User Connected to Waiting room!");
+		const room = socket.handshake.query.userRoom;
+		socket.join(room);
+		if (rooms[room].startCount > 1) {
+			socket.emit("redirect");
+		}
+		socket.on("start", (clientRoom) => {
+			rooms[clientRoom].startCount += 1;
+			if (rooms[clientRoom].startCount > 1) {
+				waitingRoom.to(clientRoom).emit("redirect");
+			}
+		});
+	});
+
 	const game = io.of("/game");
 	game.on("connection", (socket) => {
 		logger.info("Connected to game");
@@ -780,6 +808,7 @@ function resetRoom(room) {
 	rooms[room].cache.indexes = [];
 	rooms[room].cache.letters = [];
 	rooms[room].keys = [];
+	rooms[room].startCount = 0;
 	if (rooms[room].userCount === 0) {
 		rooms[room].users = {};
 	}
