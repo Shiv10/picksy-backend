@@ -1,4 +1,6 @@
-const router = require("express").Router();
+import express from "express";
+
+const router = express.Router();
 
 router.get("/", (req, res) => {
 	if (req.query.session !== undefined) {
@@ -25,4 +27,4 @@ router.post("/", (req, res) => {
 	res.end();
 });
 
-module.exports = router;
+export default router;

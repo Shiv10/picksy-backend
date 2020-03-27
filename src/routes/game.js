@@ -1,11 +1,12 @@
 /* eslint-disable quote-props */
 /* eslint-disable linebreak-style */
 /* eslint-disable no-use-before-define */
-const socketio = require("socket.io");
-const stringSimilarity = require("string-similarity");
-const constants = require("../tools/constants");
+import socketio from "socket.io";
 
-const { logger } = require("../tools/loggers");
+import { constants } from "../tools/constants";
+import { logger } from "../tools/loggers";
+import Game from "../actions/gameCalls";
+import Room from "../actions/roomCalls";
 
 const players = {}; // socket_id -> room
 
@@ -413,28 +414,38 @@ const rooms = {
 		keys: [],
 	},
 };
-
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
-	const game = io.of("/game");
-	game.on("connection", (socket) => {
-		logger.info("Connected to game");
+
+	io.on("connection", (socket) => {
+		logger.info("ssss");
+	});
+
+	const gameSpace = io.of("/gameSpace");
+	gameSpace.on("connection", (socket) => {
+		logger.info("Connected to gameSpace");
+
 		const room = socket.handshake.query.userRoom;
+		const game = new Game({
+			socket,
+			players,
+			rooms,
+			words,
+		});
+
 		socket.join(room);
+
 		socket.on("new user", (data) => {
 			logger.info("user connected");
-			players[socket.id] = data.room;
-			rooms[data.room].users[socket.id] = data.name;
-			rooms[data.room].keys = Object.values(rooms[data.room].users);
-			rooms[data.room].userCount += 1;
-			rooms[data.room].points[data.name] = 0;
+			game.initGame(socket, data);
+
 			if (rooms[data.room].turnOn) {
-				previousDrawing(game, data.name, data.room);
+				game.previousDrawing(gameSpace, data.name, data.room);
 			}
 			if (rooms[data.room].keys.length === 2) {
-				game.to(data.room).emit("start-game");
+				gameSpace.to(data.room).emit("start-game");
 				rooms[data.room].turn.start = true;
-				selectDrawer(game, data.room);
+				game.selectDrawer(gameSpace, data.room);
 			}
 
 			if (rooms[data.room].keys.length > 2) {
@@ -454,34 +465,35 @@ module.exports.listen = (app) => {
 			rooms[data.room].currentWord = data.word;
 			const ct = Math.floor(timeStamp.getTime() / 1000);
 			rooms[data.room].turn.timeStart = ct;
-			game.to(data.room).emit("word-selected", { name: rooms[data.room].currentDrawer, time: ct });
+			gameSpace.to(data.room).emit("word-selected", { name: rooms[data.room].currentDrawer, time: ct });
 			rooms[data.room].turnOn = true;
-			rooms[data.room].timeout = setTimeout(turnChange, constants.timeOfRound, game, data.room);
+			rooms[data.room].timeout = setTimeout(game.turnChange, constants.timeOfRound, gameSpace, data.room);
 			const wordRevealTime = Math.floor(60 / Math.floor(rooms[data.room].currentWord.length / 2));
-			rooms[data.room].wordRevealInterval = setInterval(revealLetter, wordRevealTime * 1000, game, data.room);
+			rooms[data.room].wordRevealInterval = setInterval(game.revealLetter, wordRevealTime * 1000, gameSpace, data.room);
 			rooms[data.room].cleared = false;
 		});
 
 		socket.on("message", (data) => {
 			if (
-				data.text === rooms[data.room].currentWord && rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
+				data.text === rooms[data.room].currentWord
+				&& rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
 			) {
 				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
 				// eslint-disable-next-line no-undef
 				t = data.time - rooms[data.room].turn.timeStart;
-				rooms[data.room].points[rooms[data.room].users[socket.id]] += calculatePoints(data.time, data.room);
+				rooms[data.room].points[rooms[data.room].users[socket.id]] += game.calculatePoints(data.time, data.room);
 				rooms[data.room].usersGuessed += 1;
 				rooms[data.room].usersGuessedName.push(rooms[data.room].users[socket.id]);
-				game.to(data.room).emit("word-guessed", { name: rooms[data.room].users[socket.id] });
+				gameSpace.to(data.room).emit("word-guessed", { name: rooms[data.room].users[socket.id] });
 				if (rooms[data.room].usersGuessed === rooms[data.room].userCount - 1) {
-					game.to(data.room).emit("next-turn");
+					gameSpace.to(data.room).emit("next-turn");
 					clearTimeout(rooms[data.room].timeout);
-					turnChange(game, data.room);
+					game.turnChange(gameSpace, data.room);
 				}
 			} else {
-				const similarity = checkSimilarity(data.text, data.room);
+				const similarity = game.checkSimilarity(data.text, data.room);
 				if (similarity >= 0.55) {
-					game.to(data.room).emit("similar-word", { text: data.text });
+					gameSpace.to(data.room).emit("similar-word", { text: data.text });
 				} else {
 					socket.to(data.room).broadcast.emit("message", {
 						name: rooms[data.room].users[socket.id],
@@ -524,8 +536,8 @@ module.exports.listen = (app) => {
 			const userRoom = players[socket.id];
 			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
 			if (rooms[userRoom].userCount <= 2) {
-				resetRoom(userRoom);
-				game.to(userRoom).emit("leave");
+				game.resetRoom(userRoom);
+				gameSpace.to(userRoom).emit("leave");
 				return;
 			}
 			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard
@@ -534,7 +546,7 @@ module.exports.listen = (app) => {
 			if (rooms[userRoom].users[socket.id] === rooms[userRoom].currentDrawer && rooms[userRoom].userCount > 1) {
 				delete rooms[userRoom].users[socket.id];
 				logger.info("Drawer disconnected!");
-				drawerDisconnected(game, rooms[userRoom].timeout, userRoom);
+				game.drawerDisconnected(gameSpace, rooms[userRoom].timeout, userRoom);
 			} else {
 				delete rooms[userRoom].users[socket.id];
 			}
@@ -543,253 +555,16 @@ module.exports.listen = (app) => {
 
 	const nsp = io.of("/room-data");
 	nsp.on("connection", (socket) => {
+		const room = new Room({
+			socket,
+			rooms,
+		});
+
 		logger.info("Client Connected");
-		const playersInRooms = getRoomInfo();
+		const playersInRooms = room.getRoomInfo();
 		const roomList = Object.keys(rooms);
 		socket.emit("info", { playersInRooms, roomList });
 	});
 
 	return io;
 };
-
-function selectDrawer(io, room) {
-	// 1. Selects drawer
-	// 2. Generates random words
-	// 3. Emits event to drawer with the random word and round number.
-	logger.info(room);
-	if (!rooms[room].turn.start) return;
-
-	rooms[room].currentDrawer = Object.values(rooms[room].users)[rooms[room].turnNumber];
-	// logger.info(room.currentDrawer);
-	const userIds = Object.keys(rooms[room].users);
-
-	for (let i = 0; i < rooms[room].userCount; i += 1) {
-		if (rooms[room].users[userIds[i]] === rooms[room].currentDrawer) {
-			rooms[room].currentDrawerId = userIds[i];
-			break;
-		}
-	}
-
-	const shuffledWords = words
-		.map((x) => ({ x, r: Math.random() }))
-		.sort((a, b) => a.r - b.r)
-		.map((a) => a.x)
-		.slice(0, constants.wordSelOptions);
-
-	io.to(rooms[room].currentDrawerId).emit("word-selection", {
-		w1: shuffledWords[0],
-		w2: shuffledWords[1],
-		w3: shuffledWords[2],
-		round: rooms[room].roundNumber,
-	});
-	rooms[room].turn.start = false;
-}
-
-function roundChange(io, room) {
-	// 1. Changer round, shifts to next round.
-	// 2. Cleares canvas
-
-	io.to(rooms[room].currentDrawerId).emit("turn-end");
-	io.to(room).emit("canvas-cleared");
-	io.to(room).emit("round-end");
-	logger.info("Round end!");
-	rooms[room].roundNumber += 1;
-	if (rooms[room].roundNumber < constants.roundNum) {
-		rooms[room].turnNumber = 0;
-		rooms[room].turn.start = true;
-		rooms[room].turnOn = true;
-		selectDrawer(io, room);
-	}
-}
-
-function turnChange(io, room) {
-	// 1. Mover the turn to the next client
-	// 2. When all clients have had turns, then round is changed.
-
-	logger.info("turn over!");
-	rooms[room].currentWord = "";
-	rooms[room].cache.drawStackX = [];
-	rooms[room].cache.drawStackY = [];
-	rooms[room].cache.colorStack = [];
-	rooms[room].cache.fillStackX = [];
-	rooms[room].cache.fillStackY = [];
-	rooms[room].cache.fillColor = [];
-	rooms[room].usersGuessedName = [];
-	rooms[room].points[rooms[room].currentDrawer] += Math.floor(rooms[room].turn.timeTotal / (rooms[room].userCount - 1)) * constants.drawerPointFactor;
-	rooms[room].turn.timeTotal = 0;
-	rooms[room].usersGuessed = 0;
-	if (!rooms[room].cleared) {
-		clearInterval(rooms[room].wordRevealInterval);
-		rooms[room].cleared = true;
-		rooms[room].cache.indexes = [];
-		rooms[room].cache.letters = [];
-	}
-	io.to(room).emit("update-scoreboard", rooms[room].points);
-	rooms[room].turnNumber += 1;
-	if (rooms[room].turnNumber === rooms[room].userCount) {
-		roundChange(io, room);
-		rooms[room].turnOn = false;
-	} else {
-		io.to(rooms[room].currentDrawerId).emit("turn-end");
-		io.to(room).emit("canvas-cleared");
-		rooms[room].turn.start = true;
-		selectDrawer(io, room);
-	}
-}
-
-function previousDrawing(io, name, currentRoom) {
-	// 1. Pushes the drawStack to the new client.
-
-	let drawId = "";
-	logger.info(currentRoom);
-	const userIds = Object.keys(rooms[currentRoom].users);
-	for (let i = 0; i < rooms[currentRoom].userCount; i += 1) {
-		if (rooms[currentRoom].users[userIds[i]] === name) {
-			drawId = userIds[i];
-			break;
-		}
-	}
-	const l = rooms[currentRoom].cache.drawStackX.length;
-	for (let i = 0; i < l; i += 1) {
-		io.to(drawId).emit("draw", {
-			x: rooms[currentRoom].cache.drawStackX[i],
-			y: rooms[currentRoom].cache.drawStackY[i],
-			color: rooms[currentRoom].cache.colorStack[i],
-		});
-	}
-
-	for (let i = 0; i < rooms[currentRoom].cache.fillStackX.length; i += 1) {
-		io.to(drawId).emit("fill", {
-			x: rooms[currentRoom].cache.fillStackX[i],
-			y: rooms[currentRoom].cache.fillStackY[i],
-			color: rooms[currentRoom].cache.fillColor[i],
-		});
-	}
-	io.to(drawId).emit("stop");
-	io.to(drawId).emit("revealed", {
-		letters: rooms[currentRoom].cache.letters,
-		indexes: rooms[currentRoom].cache.indexes,
-	});
-}
-
-function drawerDisconnected(io, timeout, room) {
-	io.to(room).emit("next-turn");
-
-	rooms[room].turnNumber -= 1;
-	clearTimeout(rooms[room].timeout);
-	logger.info("turn over!");
-	rooms[room].cache.drawStackX = [];
-	rooms[room].cache.drawStackY = [];
-	rooms[room].cache.colorStack = [];
-	rooms[room].cache.fillStackX = [];
-	rooms[room].cache.fillStackY = [];
-	rooms[room].cache.fillColor = [];
-	rooms[room].usersGuessedName = [];
-	rooms[room].cache.indexes = [];
-	rooms[room].cache.letters = [];
-	rooms[room].turnNumber += 1;
-	rooms[room].points[rooms[room].currentDrawer] += Math.floor(rooms[room].turn.timeTotal / (rooms[room].userCount - 1)) * constants.drawerPointFactor;
-	rooms[room].turn.timeTotal = 0;
-	if (!rooms[room].cleared) {
-		clearInterval(rooms[room].wordRevealInterval);
-		rooms[room].cleared = true;
-		rooms[room].cache.indexes = [];
-		rooms[room].cache.letters = [];
-	}
-	io.to(room).emit("update-scoreboard", rooms[room].points);
-	if (rooms[room].turnNumber === rooms[room].userCount) {
-		roundChangeOnDisconnect(io, room);
-		rooms[room].turnOn = false;
-	} else {
-		io.to(room).emit("canvas-cleared");
-		rooms[room].turn.start = true;
-		selectDrawer(io, room);
-	}
-}
-
-function roundChangeOnDisconnect(io, room) {
-	io.to(room).emit("canvas-cleared");
-	io.to(room).emit("round-end");
-	logger.info(`Round end for ${room}`);
-	rooms[room].roundNumber += 1;
-	if (rooms[room].roundNumber < constants.roundNum) {
-		rooms[room].turnNumber = 0;
-		rooms[room].turn.start = true;
-		rooms[room].turnOn = true;
-		selectDrawer(io);
-	}
-}
-
-function calculatePoints(t, room) {
-	const time = 80 - (t - rooms[room].turn.timeStart);
-	const p = time * constants.playerPointFactor;
-	rooms[room].turn.timeTotal += time;
-	return p;
-}
-
-function checkSimilarity(text, room) {
-	const similarity = stringSimilarity.compareTwoStrings(rooms[room].currentWord, text);
-	return similarity;
-}
-
-function revealLetter(io, room) {
-	let letter = "";
-	let letterIndex;
-	let loop = true;
-	while (loop) {
-		letterIndex = Math.floor(Math.random() * (rooms[room].currentWord.length - 1 - 0));
-		// logger.info(letterIndex);
-		if (rooms[room].cache.indexes.indexOf(letterIndex) === -1) {
-			rooms[room].cache.indexes.push(letterIndex);
-			loop = false;
-			break;
-		}
-	}
-
-	letter = rooms[room].currentWord.charAt(letterIndex);
-	rooms[room].cache.letters.push(letter);
-	io.to(room).emit("letter", { letter, index: letterIndex });
-}
-
-function resetRoom(room) {
-	rooms[room].userCount -= 1;
-	rooms[room].roundNumber = 0;
-	rooms[room].turn.start = false;
-	rooms[room].turn.timeStart = 0.0;
-	rooms[room].turn.timeTotal = 0;
-	rooms[room].currentWord = "";
-	rooms[room].currentDrawer = "";
-	rooms[room].currentDrawerId = "";
-	rooms[room].points = {};
-	rooms[room].usersGuessed = 0;
-	rooms[room].usersGuessedName = [];
-	rooms[room].turnNumber = 0;
-	rooms[room].turnOn = false;
-	clearInterval(rooms[room].wordRevealInterval);
-	rooms[room].wordRevealInterval = null;
-	clearTimeout(rooms[room].timeout);
-	rooms[room].timeout = null;
-	rooms[room].cleared = false;
-	rooms[room].cache.drawStackX = [];
-	rooms[room].cache.drawStackY = [];
-	rooms[room].cache.colorStack = [];
-	rooms[room].cache.fillStackX = [];
-	rooms[room].cache.fillStackY = [];
-	rooms[room].cache.fillColor = [];
-	rooms[room].usersGuessedName = [];
-	rooms[room].cache.indexes = [];
-	rooms[room].cache.letters = [];
-	rooms[room].keys = [];
-	if (rooms[room].userCount === 0) {
-		rooms[room].users = {};
-	}
-}
-
-function getRoomInfo() {
-	const roomList = Object.keys(rooms);
-	const info = [];
-	for (let i = 0; i < roomList.length; i += 1) {
-		info[i] = rooms[roomList[i]].userCount;
-	}
-	return info;
-}
