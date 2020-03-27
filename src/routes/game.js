@@ -60,6 +60,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room2: {
 		userCount: 0,
@@ -92,6 +93,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room3: {
 		userCount: 0,
@@ -124,6 +126,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room4: {
 		userCount: 0,
@@ -156,6 +159,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room5: {
 		userCount: 0,
@@ -188,6 +192,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room6: {
 		userCount: 0,
@@ -220,6 +225,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room7: {
 		userCount: 0,
@@ -252,6 +258,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room8: {
 		userCount: 0,
@@ -284,6 +291,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room9: {
 		userCount: 0,
@@ -316,6 +324,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room10: {
 		userCount: 0,
@@ -348,6 +357,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room11: {
 		userCount: 0,
@@ -380,6 +390,7 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 	room12: {
 		userCount: 0,
@@ -412,19 +423,32 @@ const rooms = {
 		},
 		users: {},
 		keys: [],
+		startCount: 0,
 	},
 };
 module.exports.listen = (app) => {
 	const io = socketio.listen(app);
 
-	io.on("connection", (socket) => {
-		logger.info("ssss");
+	const waitingRoom = io.of("/wait");
+	waitingRoom.on("connection", (socket) => {
+		logger.info("User Connected to Waiting room!");
+		const room = socket.handshake.query.userRoom;
+		socket.join(room);
+
+		if (rooms[room].startCount > 1) {
+			socket.emit("redirect");
+		}
+		socket.on("start", (clientRoom) => {
+			rooms[clientRoom].startCount += 1;
+			if (rooms[clientRoom].startCount > 1) {
+				waitingRoom.to(clientRoom).emit("redirect");
+			}
+		});
 	});
 
 	const gameSpace = io.of("/gameSpace");
 	gameSpace.on("connection", (socket) => {
-		logger.info("Connected to gameSpace");
-
+		logger.info("Connected to game");
 		const room = socket.handshake.query.userRoom;
 		const game = new Game({
 			socket,
@@ -475,8 +499,8 @@ module.exports.listen = (app) => {
 
 		socket.on("message", (data) => {
 			if (
-				data.text === rooms[data.room].currentWord
-				&& rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
+				data.text === rooms[data.room].currentWord &&
+				rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
 			) {
 				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
 				// eslint-disable-next-line no-undef

@@ -20,7 +20,7 @@ $(document).ready(() => {
 			complete: () => {
 				// called when complete
 				console.log("process complete");
-				window.location.replace("/index");
+				window.location.replace("/waitingRoom");
 			},
 		});
 		count += 1;
