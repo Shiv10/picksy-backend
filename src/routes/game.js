@@ -9,7 +9,7 @@ import { players, rooms } from "../actions/initFill";
 import Game from "../actions/gameCalls";
 import Room from "../actions/roomCalls";
 
-module.exports.listen = (app) => {
+export default (app) => {
 	const io = socketio.listen(app);
 
 	const waitSpace = io.of("/waitSpace");
@@ -88,8 +88,6 @@ module.exports.listen = (app) => {
 				&& rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
 			) {
 				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
-				// eslint-disable-next-line no-undef
-				t = data.time - rooms[data.room].turn.timeStart;
 				rooms[data.room].points[rooms[data.room].users[socket.id]] += gamePlay.calculatePoints(data.time, data.room);
 				rooms[data.room].usersGuessed += 1;
 				rooms[data.room].usersGuessedName.push(rooms[data.room].users[socket.id]);
