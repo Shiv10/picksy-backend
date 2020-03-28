@@ -144,6 +144,7 @@ export default (app) => {
 			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
 			if (rooms[userRoom].userCount <= 2) {
 				gamePlay.resetRoom(userRoom);
+				logger.info("Room variable reset");
 				gameSpace.to(userRoom).emit("leave");
 				return;
 			}
