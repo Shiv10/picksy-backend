@@ -1,4 +1,5 @@
 import express from "express";
+import * as initVals from "../actions/initFill";
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.get("/", (req, res) => {
 
 router.post("/", (req, res) => {
 	req.session.user.room = req.body.room;
+	initVals.rooms[req.session.user.room].userCount += 1;
 	res.end();
 });
 

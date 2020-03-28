@@ -35,7 +35,6 @@ module.exports.listen = (app) => {
 		const room = socket.handshake.query.userRoom;
 		const game = new Game({
 			socket,
-			io,
 		});
 
 		socket.join(room);
@@ -80,8 +79,8 @@ module.exports.listen = (app) => {
 
 		socket.on("message", (data) => {
 			if (
-				data.text === rooms[data.room].currentWord &&
-				rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
+				data.text === rooms[data.room].currentWord
+				&& rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
 			) {
 				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
 				// eslint-disable-next-line no-undef

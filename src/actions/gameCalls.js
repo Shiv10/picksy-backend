@@ -8,7 +8,6 @@ import * as initVals from "./initFill";
 export default class Piksy {
 	constructor(options) {
 		this.socket = options.socket;
-		this.io = options.io;
 		// this.players = initVals.players;
 		// initVals.rooms = initVals.rooms;
 		// this.words = initVals.words;
@@ -46,7 +45,7 @@ export default class Piksy {
 			.map((a) => a.x)
 			.slice(0, constants.wordSelOptions);
 
-		this.io.to(initVals.rooms[room].currentDrawerId).emit("word-selection", {
+		io.to(initVals.rooms[room].currentDrawerId).emit("word-selection", {
 			w1: shuffledWords[0],
 			w2: shuffledWords[1],
 			w3: shuffledWords[2],
@@ -61,9 +60,9 @@ export default class Piksy {
 		// 1. Changer round, shifts to next round.
 		// 2. Cleares canvas
 
-		this.io.to(initVals.rooms[room].currentDrawerId).emit("turn-end");
-		this.io.to(room).emit("canvas-cleared");
-		this.io.to(room).emit("round-end");
+		io.to(initVals.rooms[room].currentDrawerId).emit("turn-end");
+		io.to(room).emit("canvas-cleared");
+		io.to(room).emit("round-end");
 		logger.info("Round end!");
 		initVals.rooms[room].roundNumber += 1;
 		if (initVals.rooms[room].roundNumber < constants.roundNum) {
@@ -97,14 +96,14 @@ export default class Piksy {
 			initVals.rooms[room].cache.indexes = [];
 			initVals.rooms[room].cache.letters = [];
 		}
-		this.io.to(room).emit("update-scoreboard", initVals.rooms[room].points);
+		io.to(room).emit("update-scoreboard", initVals.rooms[room].points);
 		initVals.rooms[room].turnNumber += 1;
 		if (initVals.rooms[room].turnNumber === initVals.rooms[room].userCount) {
 			this.roundChange(io, room);
 			initVals.rooms[room].turnOn = false;
 		} else {
-			this.io.to(initVals.rooms[room].currentDrawerId).emit("turn-end");
-			this.io.to(room).emit("canvas-cleared");
+			io.to(initVals.rooms[room].currentDrawerId).emit("turn-end");
+			io.to(room).emit("canvas-cleared");
 			initVals.rooms[room].turn.start = true;
 			this.selectDrawer(io, room);
 		}
@@ -124,7 +123,7 @@ export default class Piksy {
 		}
 		const l = initVals.rooms[currentRoom].cache.drawStackX.length;
 		for (let i = 0; i < l; i += 1) {
-			this.io.to(drawId).emit("draw", {
+			io.to(drawId).emit("draw", {
 				x: initVals.rooms[currentRoom].cache.drawStackX[i],
 				y: initVals.rooms[currentRoom].cache.drawStackY[i],
 				color: initVals.rooms[currentRoom].cache.colorStack[i],
@@ -132,21 +131,21 @@ export default class Piksy {
 		}
 
 		for (let i = 0; i < initVals.rooms[currentRoom].cache.fillStackX.length; i += 1) {
-			this.io.to(drawId).emit("fill", {
+			io.to(drawId).emit("fill", {
 				x: initVals.rooms[currentRoom].cache.fillStackX[i],
 				y: initVals.rooms[currentRoom].cache.fillStackY[i],
 				color: initVals.rooms[currentRoom].cache.fillColor[i],
 			});
 		}
-		this.io.to(drawId).emit("stop");
-		this.io.to(drawId).emit("revealed", {
+		io.to(drawId).emit("stop");
+		io.to(drawId).emit("revealed", {
 			letters: initVals.rooms[currentRoom].cache.letters,
 			indexes: initVals.rooms[currentRoom].cache.indexes,
 		});
 	}
 
 	drawerDisconnected(io, timeout, room) {
-		this.io.to(room).emit("next-turn");
+		io.to(room).emit("next-turn");
 
 		initVals.rooms[room].turnNumber -= 1;
 		clearTimeout(initVals.rooms[room].timeout);
@@ -170,27 +169,27 @@ export default class Piksy {
 			initVals.rooms[room].cache.indexes = [];
 			initVals.rooms[room].cache.letters = [];
 		}
-		this.io.to(room).emit("update-scoreboard", initVals.rooms[room].points);
+		io.to(room).emit("update-scoreboard", initVals.rooms[room].points);
 		if (initVals.rooms[room].turnNumber === initVals.rooms[room].userCount) {
 			this.roundChangeOnDisconnect(io, room);
 			initVals.rooms[room].turnOn = false;
 		} else {
-			this.io.to(room).emit("canvas-cleared");
+			io.to(room).emit("canvas-cleared");
 			initVals.rooms[room].turn.start = true;
 			this.selectDrawer(io, room);
 		}
 	}
 
 	roundChangeOnDisconnect(io, room) {
-		this.io.to(room).emit("canvas-cleared");
-		this.io.to(room).emit("round-end");
+		io.to(room).emit("canvas-cleared");
+		io.to(room).emit("round-end");
 		logger.info(`Round end for ${room}`);
 		initVals.rooms[room].roundNumber += 1;
 		if (initVals.rooms[room].roundNumber < constants.roundNum) {
 			initVals.rooms[room].turnNumber = 0;
 			initVals.rooms[room].turn.start = true;
 			initVals.rooms[room].turnOn = true;
-			this.selectDrawer(io);
+			this.selectDrawer(io, room);
 		}
 	}
 
@@ -222,7 +221,7 @@ export default class Piksy {
 
 		letter = initVals.rooms[room].currentWord.charAt(letterIndex);
 		initVals.rooms[room].cache.letters.push(letter);
-		this.io.to(room).emit("letter", { letter, index: letterIndex });
+		io.to(room).emit("letter", { letter, index: letterIndex });
 	}
 
 	resetRoom(room) {
