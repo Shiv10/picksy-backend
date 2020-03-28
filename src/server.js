@@ -16,9 +16,29 @@ require("dotenv").config();
 
 const app = express();
 const server = require("http").Server(app);
-const io = require("./routes/game").listen(server);
+const io = require("./routes/game").listen(server, {
+	handlePreflightRequest: (req, res) => {
+		const headers = {
+			"Access-Control-Allow-Headers": "Content-Type, Authorization",
+			"Access-Control-Allow-Origin": "http://localhost:3001", // or the specific origin you want to give access to,
+			"Access-Control-Allow-Credentials": true,
+		};
+		res.writeHead(200, headers);
+		res.end();
+	},
+});
 
 const port = parseInt(process.env.PORT, 10) || 3001;
+
+process.env.JWT_SECRET = "abcd";
+if (!process.env.JWT_SECRET) {
+	logger.error("Fatal Error: JWT_SECRET not defined");
+	process.exit(1);
+}
+
+app.set("view engine", "ejs");
+app.set("views", `${__dirname}/../public/views`);
+app.use("/static", express.static(`${__dirname}/../public/static`));
 
 const whitelist = ["http://localhost:3001", "http://localhost:3002"];
 const corsOptions = {
@@ -30,16 +50,6 @@ const corsOptions = {
 		}
 	},
 };
-
-process.env.JWT_SECRET = "abcd";
-if (!process.env.JWT_SECRET) {
-	logger.error("Fatal Error: JWT_SECRET not defined");
-	process.exit(1);
-}
-
-app.set("view engine", "ejs");
-app.set("views", `${__dirname}/../public/views`);
-app.use("/static", express.static(`${__dirname}/../public/static`));
 
 app.use(cors(corsOptions));
 app.use(cookieParser());

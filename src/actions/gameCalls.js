@@ -2,10 +2,10 @@
 import * as stringSimilarity from "string-similarity";
 
 import { logger } from "../tools/loggers";
-import * as constants from "../tools/constants";
+import constants from "../tools/constants";
 import * as initVals from "./initFill";
 
-export default class Piksy {
+export default class gamePlay {
 	constructor(options) {
 		this.socket = options.socket;
 		// this.players = initVals.players;
@@ -13,13 +13,12 @@ export default class Piksy {
 		// this.words = initVals.words;
 	}
 
-	initGame(socket, data) {
+	initGame(data) {
 		initVals.players[this.socket.id] = data.room;
 		initVals.rooms[data.room].users[this.socket.id] = data.name;
 		initVals.rooms[data.room].keys = Object.values(initVals.rooms[data.room].users);
 		initVals.rooms[data.room].userCount += 1;
 		initVals.rooms[data.room].points[data.name] = 0;
-		logger.info(JSON.stringify(initVals.rooms));
 	}
 
 	selectDrawer(io, room) {
