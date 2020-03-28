@@ -25,5 +25,5 @@ const gameSchema = new mongoose.Schema({
 	},
 });
 
-const Game = db.pic20.model("Game", gameSchema);
+const Game = db.piksy.model("Game", gameSchema);
 export default Game;

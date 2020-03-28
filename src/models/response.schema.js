@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const scoreSchema = new mongoose.Schema({
-	participantId: {
+	userId: {
 		type: String,
 		required: true,
 		index: true,
