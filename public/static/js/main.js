@@ -36,12 +36,17 @@ window.addEventListener("load", () => {
 	const messageCon = document.getElementById("message-container");
 	const btn = document.getElementById("send-button");
 	const msg = document.getElementById("message-input");
+	const undoBtn = document.getElementById("undo");
 	let canDraw = false;
 	const chat = true;
 	const wordCon = document.getElementById("word-reveal");
 	const fillBtn = document.getElementById("fill");
 	const selectedColor = document.getElementById("colorPicker");
 	let fill = false;
+	let saveData;
+	let undoStackDrawer = [];
+
+	const undoLimit = 3;
 
 	function send() {
 		const timeStamp = new Date();
@@ -96,6 +101,9 @@ window.addEventListener("load", () => {
 	}
 
 	function startPosition(e) {
+		saveData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		if (undoStackDrawer.length >= undoLimit) undoStackDrawer.shift();
+		undoStackDrawer.push(saveData);
 		painting = true;
 		draw(e);
 	}
@@ -140,6 +148,9 @@ window.addEventListener("load", () => {
 
 	const checkFill = (e) => {
 		if (!fill) return;
+		saveData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		if (undoStackDrawer.length >= undoLimit) undoStackDrawer.shift();
+		undoStackDrawer.push(saveData);
 		fill = false;
 		socket.emit("fill", {
 			x: e.clientX - 17,
@@ -165,6 +176,23 @@ window.addEventListener("load", () => {
 		fillClick();
 	});
 
+	function undoPaint() {
+		if (!canDraw) return;
+		if (undoStackDrawer.length > 0) {
+			const state = { canvasState: undoStackDrawer[undoStackDrawer.length - 1] };
+			ctx.putImageData(undoStackDrawer[undoStackDrawer.length - 1], 0, 0);
+			socket.emit("undo", { room, state });
+			undoStackDrawer.pop();
+		} else {
+			alert("Nothing to Undo");
+		}
+	}
+
+	socket.on("undo", (data) => {
+		console.log(data.state.canvasState);
+	});
+
+	undoBtn.addEventListener("click", undoPaint);
 	canvas.addEventListener("mousedown", startPosition);
 	canvas.addEventListener("mouseup", finishedPosition);
 	canvas.addEventListener("mousemove", draw);
@@ -247,6 +275,7 @@ window.addEventListener("load", () => {
 	const dispTime = document.getElementById("timer");
 
 	socket.on("word-selected", (data) => {
+		undoStackDrawer = [];
 		console.log(JSON.stringify(data));
 		if (name === data.name) {
 			canDraw = true;

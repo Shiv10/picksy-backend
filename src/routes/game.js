@@ -139,6 +139,10 @@ export default (app) => {
 			rooms[data.room].cleared = true;
 		});
 
+		socket.on("undo", (data) => {
+			socket.to(data.room).broadcast.emit("undo", data);
+		});
+
 		socket.on("disconnect", () => {
 			const userRoom = players[socket.id];
 			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
