@@ -10,6 +10,7 @@ import cors from "cors";
 
 import { logger } from "./tools/loggers";
 import constants from "./tools/constants";
+import { corsHandler, ensureAuthenticated } from "./actions/middlewares";
 
 import socketHandler from "./routes/socketHandler";
 import auth from "./routes/auth";
@@ -22,12 +23,6 @@ export const server = http.Server(app);
 
 socketHandler(server, constants.corsOptions);
 
-process.env.JWT_SECRET = "abcd";
-if (!process.env.JWT_SECRET) {
-	logger.error("Fatal Error: JWT_SECRET not defined");
-	process.exit(1);
-}
-
 app.set("view engine", "ejs");
 app.set("views", `${__dirname}/../public/views`);
 app.use("/static", express.static(`${__dirname}/../public/static`));
@@ -35,22 +30,12 @@ app.use("/static", express.static(`${__dirname}/../public/static`));
 app.use(passport.initialize());
 app.use(passport.session());
 
-const whitelist = ["http://localhost:3001", "http://localhost:3002"];
-const corsOptions = {
-	origin(origin, callback) {
-		if (whitelist.indexOf(origin) !== -1 || !origin) {
-			callback(null, true);
-		} else {
-			callback(new Error("Not allowed by CORS"));
-		}
-	},
-};
-
-app.use(cors(corsOptions));
+app.use(cors(corsHandler));
 app.use(cookieParser());
 app.use(urlencoded({ extended: true }));
 app.use(json());
 app.use(session({ secret: "Shh, its a secret!" }));
+app.use(ensureAuthenticated);
 
 app.use("/auth", auth);
 app.use("/home", home);
