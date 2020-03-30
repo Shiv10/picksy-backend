@@ -1,9 +1,17 @@
 import express from "express";
+import passport from "passport";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-	res.render("index", { username: req.session.user.username, room: req.session.user.room });
-});
+router.get("/google", passport.authenticate("google", { scope: ["openid email profile"] }));
 
-export default router;
+router.get(
+	"/google/callback",
+	passport.authenticate("google", {
+		failureRedirect: "/auth",
+	}),
+	(req, res) => {
+		// Authenticated successfully
+		res.redirect("/");
+	},
+);
