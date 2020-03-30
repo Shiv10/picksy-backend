@@ -1,4 +1,4 @@
-// require("./models/db");
+import "./models/db";
 
 import express from "express";
 import http from "http";
@@ -54,4 +54,3 @@ app.use("/index", auth);
 app.get("/", (req, res) => {
 	res.render("landingPage");
 });
-
