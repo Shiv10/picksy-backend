@@ -37,8 +37,8 @@ window.addEventListener("load", () => {
 	const btn = document.getElementById("send-button");
 	const msg = document.getElementById("message-input");
 	const undoBtn = document.getElementById("undo");
+	const saveBtn = document.getElementById("save");
 	let canDraw = false;
-	const chat = true;
 	const wordCon = document.getElementById("word-reveal");
 	const fillBtn = document.getElementById("fill");
 	const selectedColor = document.getElementById("colorPicker");
@@ -81,6 +81,15 @@ window.addEventListener("load", () => {
 		const imgData = new ImageData(500, 500);
 		imgData.data.set(data.state);
 		ctx.putImageData(imgData, 0, 0);
+	});
+
+	saveBtn.addEventListener("click", () => {
+		const image = canvas.toDataURL("img/png", 1.0)
+			.replace("image/png", "image/octet-stream");
+		const link = document.createElement("a");
+		link.download = "my-drawing.png";
+		link.href = image;
+		link.click();
 	});
 
 	// Drawing fucntionality started
