@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const db = require("./db");
+import mongoose from "mongoose";
+import db from "./db";
 
 const wordSchema = new mongoose.Schema({
 	message: {
@@ -18,5 +18,5 @@ const wordSchema = new mongoose.Schema({
 	},
 });
 
-const Word = db.piksy.model("Word", wordSchema);
+const Word = db.model("Word", wordSchema);
 export default Word;

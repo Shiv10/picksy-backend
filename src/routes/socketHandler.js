@@ -1,12 +1,17 @@
-import express from "express";
+/* eslint-disable quote-props */
+/* eslint-disable linebreak-style */
+/* eslint-disable no-use-before-define */
+import socketio from "socket.io";
 
-const router = express.Router();
+import constants from "../tools/constants";
+import { logger } from "../tools/loggers";
+import { players, rooms } from "../actions/initFill";
+import Game from "../actions/gameCalls";
+import Room from "../actions/roomCalls";
 
-router.get("/", (req, res) => {
-	res.render("index", { username: req.session.user.username, room: req.session.user.room });
-});
+export default (app) => {
+	const io = socketio.listen(app);
 
-<<<<<<< HEAD
 	const waitSpace = io.of("/waitSpace");
 	waitSpace.on("connection", (socket) => {
 		logger.info("User Connected to Waiting room!");
@@ -40,9 +45,7 @@ router.get("/", (req, res) => {
 
 			if (rooms[data.room].turnOn) {
 				gamePlay.previousDrawing(gameSpace, data.name, data.room);
-				gameSpace.to(rooms[data.room].currentDrawerId).emit("send-data");
 			}
-
 			if (rooms[data.room].keys.length === 2) {
 				gameSpace.to(data.room).emit("start-game");
 				rooms[data.room].turn.start = true;
@@ -58,10 +61,6 @@ router.get("/", (req, res) => {
 					});
 				}
 			}
-		});
-
-		socket.on("state", (data) => {
-			gameSpace.to(data.room).emit("state", data);
 		});
 
 		socket.on("word-selected", (data) => {
@@ -140,10 +139,6 @@ router.get("/", (req, res) => {
 			rooms[data.room].cleared = true;
 		});
 
-		socket.on("undo", (data) => {
-			socket.to(data.room).broadcast.emit("state", data);
-		});
-
 		socket.on("disconnect", () => {
 			const userRoom = players[socket.id];
 			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
@@ -181,6 +176,3 @@ router.get("/", (req, res) => {
 
 	return io;
 };
-=======
-export default router;
->>>>>>> 4696fb91454ca0a58a7360594426b98a7de35412
