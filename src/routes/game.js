@@ -45,7 +45,9 @@ export default (app) => {
 
 			if (rooms[data.room].turnOn) {
 				gamePlay.previousDrawing(gameSpace, data.name, data.room);
+				gameSpace.to(rooms[data.room].currentDrawerId).emit("send-data");
 			}
+
 			if (rooms[data.room].keys.length === 2) {
 				gameSpace.to(data.room).emit("start-game");
 				rooms[data.room].turn.start = true;
@@ -61,6 +63,10 @@ export default (app) => {
 					});
 				}
 			}
+		});
+
+		socket.on("state", (data) => {
+			gameSpace.to(data.room).emit("state", data);
 		});
 
 		socket.on("word-selected", (data) => {
@@ -140,7 +146,7 @@ export default (app) => {
 		});
 
 		socket.on("undo", (data) => {
-			socket.to(data.room).broadcast.emit("undo", data);
+			socket.to(data.room).broadcast.emit("state", data);
 		});
 
 		socket.on("disconnect", () => {

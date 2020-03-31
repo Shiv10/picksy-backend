@@ -70,6 +70,19 @@ window.addEventListener("load", () => {
 		messageCon.innerHTML += `<strong>${data.name}</strong>: ${data.text}<br>`;
 	});
 
+	socket.on("send-data", () => {
+		console.log("Hey, sending data....");
+		const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const normalArray = Array.from(imgData.data);
+		socket.emit("state", { room, state: normalArray });
+	});
+
+	socket.on("state", (data) => {
+		const imgData = new ImageData(500, 500);
+		imgData.data.set(data.state);
+		ctx.putImageData(imgData, 0, 0);
+	});
+
 	// Drawing fucntionality started
 
 	canvas.height = 500;
@@ -179,18 +192,15 @@ window.addEventListener("load", () => {
 	function undoPaint() {
 		if (!canDraw) return;
 		if (undoStackDrawer.length > 0) {
-			const state = { canvasState: undoStackDrawer[undoStackDrawer.length - 1] };
 			ctx.putImageData(undoStackDrawer[undoStackDrawer.length - 1], 0, 0);
-			socket.emit("undo", { room, state });
+			const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			const normalArray = Array.from(imgData.data);
+			socket.emit("undo", { room, state: normalArray });
 			undoStackDrawer.pop();
 		} else {
 			alert("Nothing to Undo");
 		}
 	}
-
-	socket.on("undo", (data) => {
-		console.log(data.state.canvasState);
-	});
 
 	undoBtn.addEventListener("click", undoPaint);
 	canvas.addEventListener("mousedown", startPosition);

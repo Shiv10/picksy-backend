@@ -78,12 +78,6 @@ export default class gamePlay {
 
 		logger.info("turn over!");
 		initVals.rooms[room].currentWord = "";
-		initVals.rooms[room].cache.drawStackX = [];
-		initVals.rooms[room].cache.drawStackY = [];
-		initVals.rooms[room].cache.colorStack = [];
-		initVals.rooms[room].cache.fillStackX = [];
-		initVals.rooms[room].cache.fillStackY = [];
-		initVals.rooms[room].cache.fillColor = [];
 		initVals.rooms[room].usersGuessedName = [];
 		initVals.rooms[room].points[initVals.rooms[room].currentDrawer]
 			+= Math.floor(initVals.rooms[room].turn.timeTotal / (initVals.rooms[room].userCount - 1)) * constants.drawerPointFactor;
@@ -109,7 +103,7 @@ export default class gamePlay {
 	}
 
 	previousDrawing(io, name, currentRoom) {
-		// 1. Pushes the drawStack to the new client.
+		// 1. Pushes the revealed letters to the newly connected client
 
 		let drawId = "";
 		logger.info(currentRoom);
@@ -120,23 +114,7 @@ export default class gamePlay {
 				break;
 			}
 		}
-		const l = initVals.rooms[currentRoom].cache.drawStackX.length;
-		for (let i = 0; i < l; i += 1) {
-			io.to(drawId).emit("draw", {
-				x: initVals.rooms[currentRoom].cache.drawStackX[i],
-				y: initVals.rooms[currentRoom].cache.drawStackY[i],
-				color: initVals.rooms[currentRoom].cache.colorStack[i],
-			});
-		}
 
-		for (let i = 0; i < initVals.rooms[currentRoom].cache.fillStackX.length; i += 1) {
-			io.to(drawId).emit("fill", {
-				x: initVals.rooms[currentRoom].cache.fillStackX[i],
-				y: initVals.rooms[currentRoom].cache.fillStackY[i],
-				color: initVals.rooms[currentRoom].cache.fillColor[i],
-			});
-		}
-		io.to(drawId).emit("stop");
 		io.to(drawId).emit("revealed", {
 			letters: initVals.rooms[currentRoom].cache.letters,
 			indexes: initVals.rooms[currentRoom].cache.indexes,
@@ -149,12 +127,6 @@ export default class gamePlay {
 		initVals.rooms[room].turnNumber -= 1;
 		clearTimeout(initVals.rooms[room].timeout);
 		logger.info("turn over!");
-		initVals.rooms[room].cache.drawStackX = [];
-		initVals.rooms[room].cache.drawStackY = [];
-		initVals.rooms[room].cache.colorStack = [];
-		initVals.rooms[room].cache.fillStackX = [];
-		initVals.rooms[room].cache.fillStackY = [];
-		initVals.rooms[room].cache.fillColor = [];
 		initVals.rooms[room].usersGuessedName = [];
 		initVals.rooms[room].cache.indexes = [];
 		initVals.rooms[room].cache.letters = [];
@@ -242,12 +214,6 @@ export default class gamePlay {
 		clearTimeout(initVals.rooms[room].timeout);
 		initVals.rooms[room].timeout = null;
 		initVals.rooms[room].cleared = false;
-		initVals.rooms[room].cache.drawStackX = [];
-		initVals.rooms[room].cache.drawStackY = [];
-		initVals.rooms[room].cache.colorStack = [];
-		initVals.rooms[room].cache.fillStackX = [];
-		initVals.rooms[room].cache.fillStackY = [];
-		initVals.rooms[room].cache.fillColor = [];
 		initVals.rooms[room].usersGuessedName = [];
 		initVals.rooms[room].cache.indexes = [];
 		initVals.rooms[room].cache.letters = [];
