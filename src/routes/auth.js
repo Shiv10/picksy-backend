@@ -9,13 +9,13 @@ const router = express.Router();
 // router.get("/local", passport.authenticate("local", { scope: ["email profile"] }));
 
 // router.get("/local/callback", passport.authenticate("local", { failureRedirect: "/" }), (req, res) => {
-// 	// Authenticated successfully
-// 	res.redirect("/home");
+// // Authenticated successfully
+// res.redirect("/home");
 // });
 
 // router.get("/logout", (req, res) => {
-// 	req.logout();
-// 	res.redirect("/");
+// req.logout();
+// res.redirect("/");
 // });
 
 export default router;
