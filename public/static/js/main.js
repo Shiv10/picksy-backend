@@ -85,7 +85,7 @@ window.addEventListener("load", () => {
 
 	saveBtn.addEventListener("click", () => {
 		const image = canvas.toDataURL("img/png", 1.0)
-			.replace("image/png", "image/octet-stream");
+			.replace("gameLobby/png", "image/octet-stream");
 		const link = document.createElement("a");
 		link.download = "my-drawing.png";
 		link.href = image;
@@ -318,7 +318,7 @@ window.addEventListener("load", () => {
 			dispName.innerHTML = "";
 			wordCon.innerHTML = "";
 			clearInterval(t);
-			window.location.replace("/rooms?session=false");
+			window.location.replace("/gameLobby?session=false");
 		});
 		function countDown() {
 			p -= 1;
@@ -351,7 +351,7 @@ window.addEventListener("load", () => {
 		dispTime.innerHTML = "Everyone left! What are you doing here?";
 		dispName.innerHTML = "";
 		wordCon.innerHTML = "";
-		window.location.replace("/rooms?session=false");
+		window.location.replace("/gameLobby?session=false");
 	});
 
 	socket.on("word-guessed", (data) => {
