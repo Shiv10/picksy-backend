@@ -9,47 +9,37 @@ import cors from "cors";
 
 import { logger } from "./tools/loggers";
 import constants from "./tools/constants";
-import socketHandler from "./routes/game";
-// const register = require("./routes/register.js");
-import rooms from "./routes/rooms";
-import waitingRoom from "./routes/waiting";
+import corsHandler from "./actions/middlewares";
+
+import socketHandler from "./routes/socketHandler";
 import auth from "./routes/auth";
+import home from "./routes/home";
+import gameLobby from "./routes/gameLobby";
+import game from "./routes/game";
 
 export const app = express();
 export const server = http.Server(app);
 
 socketHandler(server, constants.corsOptions);
 
-process.env.JWT_SECRET = "abcd";
-if (!process.env.JWT_SECRET) {
-	logger.error("Fatal Error: JWT_SECRET not defined");
-	process.exit(1);
-}
-
 app.set("view engine", "ejs");
 app.set("views", `${__dirname}/../public/views`);
 app.use("/static", express.static(`${__dirname}/../public/static`));
 
-const whitelist = ["http://localhost:3001", "http://localhost:3002"];
-const corsOptions = {
-	origin(origin, callback) {
-		if (whitelist.indexOf(origin) !== -1 || !origin) {
-			callback(null, true);
-		} else {
-			callback(new Error("Not allowed by CORS"));
-		}
-	},
-};
+// app.use(passport.initialize());
+// app.use(passport.session());
 
-app.use(cors(corsOptions));
+app.use(cors(corsHandler));
 app.use(cookieParser());
 app.use(urlencoded({ extended: true }));
 app.use(json());
 app.use(session({ secret: "Shh, its a secret!" }));
+// app.use(ensureAuthenticated);
 
-app.use("/rooms", rooms);
-app.use("/waitingRoom", waitingRoom);
-app.use("/index", auth);
+app.use("/auth", auth);
+app.use("/home", home); // The page where you add or create a room
+app.use("/gameLobby", gameLobby); // The waiting area before the game begins
+app.use("/game", game); // The page where you play the game
 
 app.get("/", (req, res) => {
 	res.render("landingPage");

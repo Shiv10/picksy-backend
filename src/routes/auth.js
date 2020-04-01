@@ -1,9 +1,21 @@
 import express from "express";
+// import passport from "passport";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-	res.render("index", { username: req.session.user.username, room: req.session.user.room });
-});
+// Configure Properly for local
+
+
+// router.get("/local", passport.authenticate("local", { scope: ["email profile"] }));
+
+// router.get("/local/callback", passport.authenticate("local", { failureRedirect: "/" }), (req, res) => {
+// 	// Authenticated successfully
+// 	res.redirect("/home");
+// });
+
+// router.get("/logout", (req, res) => {
+// 	req.logout();
+// 	res.redirect("/");
+// });
 
 export default router;

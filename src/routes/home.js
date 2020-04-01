@@ -23,7 +23,7 @@ router.get("/", (req, res) => {
 	res.render("roomSelection", { username: req.session.user.username });
 });
 
-router.post("/", (req, res) => {
+router.post("/currRoom", (req, res) => {
 	req.session.user.room = req.body.room;
 	res.end();
 });

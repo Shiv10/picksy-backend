@@ -10,6 +10,6 @@ $(document).ready(() => {
 		count += 1;
 	});
 	socket.on("redirect", () => {
-		window.location.replace("/index");
+		window.location.replace("/game");
 	});
 });

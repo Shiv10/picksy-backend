@@ -13,14 +13,14 @@ $(document).ready(() => {
 		const t = e.target.id;
 		console.log(t);
 		$.ajax({
-			url: "/rooms",
+			url: "/home/currRoom",
 			type: "post",
 			data: { room: t },
-			dataType: "json",
+			dataType: "application/json",
 			complete: () => {
 				// called when complete
 				console.log("process complete");
-				window.location.replace("/waitingRoom");
+				window.location.replace("/gameLobby");
 			},
 		});
 		count += 1;

@@ -37,8 +37,8 @@ window.addEventListener("load", () => {
 	const btn = document.getElementById("send-button");
 	const msg = document.getElementById("message-input");
 	const undoBtn = document.getElementById("undo");
+	const saveBtn = document.getElementById("save");
 	let canDraw = false;
-	const chat = true;
 	const wordCon = document.getElementById("word-reveal");
 	const fillBtn = document.getElementById("fill");
 	const selectedColor = document.getElementById("colorPicker");
@@ -68,6 +68,28 @@ window.addEventListener("load", () => {
 
 	socket.on("message", (data) => {
 		messageCon.innerHTML += `<strong>${data.name}</strong>: ${data.text}<br>`;
+	});
+
+	socket.on("send-data", () => {
+		console.log("Hey, sending data....");
+		const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const normalArray = Array.from(imgData.data);
+		socket.emit("state", { room, state: normalArray });
+	});
+
+	socket.on("state", (data) => {
+		const imgData = new ImageData(500, 500);
+		imgData.data.set(data.state);
+		ctx.putImageData(imgData, 0, 0);
+	});
+
+	saveBtn.addEventListener("click", () => {
+		const image = canvas.toDataURL("img/png", 1.0)
+			.replace("image/png", "image/octet-stream");
+		const link = document.createElement("a");
+		link.download = "my-drawing.png";
+		link.href = image;
+		link.click();
 	});
 
 	// Drawing fucntionality started
@@ -179,18 +201,15 @@ window.addEventListener("load", () => {
 	function undoPaint() {
 		if (!canDraw) return;
 		if (undoStackDrawer.length > 0) {
-			const state = { canvasState: undoStackDrawer[undoStackDrawer.length - 1] };
 			ctx.putImageData(undoStackDrawer[undoStackDrawer.length - 1], 0, 0);
-			socket.emit("undo", { room, state });
+			const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			const normalArray = Array.from(imgData.data);
+			socket.emit("undo", { room, state: normalArray });
 			undoStackDrawer.pop();
 		} else {
 			alert("Nothing to Undo");
 		}
 	}
-
-	socket.on("undo", (data) => {
-		console.log(data.state.canvasState);
-	});
 
 	undoBtn.addEventListener("click", undoPaint);
 	canvas.addEventListener("mousedown", startPosition);
