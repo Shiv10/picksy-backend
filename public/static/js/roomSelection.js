@@ -1,7 +1,9 @@
+/* eslint-disable import/extensions */
 /* eslint-disable no-undef */
+import { socketURL } from "./config.js";
 
 $(document).ready(() => {
-	const socket = io(`${window.location.hostname}:3002/room-data`);
+	const socket = io(`${socketURL}/room-data`);
 	socket.on("info", (data) => {
 		for (let i = 0; i < data.roomList.length; i += 1) {
 			console.log(`${data.roomList[i]}: ${data.playersInRooms[i]}`);

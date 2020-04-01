@@ -1,14 +1,16 @@
+/* eslint-disable import/extensions */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-inner-declarations */
 /* eslint-disable no-alert */
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
+import { socketURL } from "./config.js";
 
 window.addEventListener("load", () => {
 	const getRoom = document.getElementById("getRoom");
 	const room = getRoom.innerHTML;
 	// eslint-disable-next-line no-undef
-	const socket = io(`${window.location.hostname}:3002/gameSpace`, { query: `userRoom=${room}` });
+	const socket = io(`${socketURL}/gameSpace`, { query: `userRoom=${room}` });
 	let name = "";
 
 	// eslint-disable-next-line no-constant-condition
