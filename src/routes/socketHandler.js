@@ -37,7 +37,6 @@ export default (app) => {
 		const gamePlay = new Game({
 			socket,
 		});
-
 		socket.join(room);
 
 		socket.on("new user", (data) => {
@@ -74,7 +73,14 @@ export default (app) => {
 			rooms[data.room].turn.timeStart = ct;
 			gameSpace.to(data.room).emit("word-selected", { name: rooms[data.room].currentDrawer, time: ct });
 			rooms[data.room].turnOn = true;
-			rooms[data.room].timeout = setTimeout(gamePlay.turnChange, constants.timeOfRound, gameSpace, data.room);
+			rooms[data.room].timeout = setTimeout(
+				() => {
+					gamePlay.turnChange(gameSpace, data.room);
+				},
+				constants.timeOfRound,
+				gameSpace,
+				data.room,
+			);
 			const wordRevealTime = Math.floor(60 / Math.floor(rooms[data.room].currentWord.length / 2));
 			rooms[data.room].wordRevealInterval = setInterval(
 				gamePlay.revealLetter,

@@ -80,7 +80,8 @@ export default class gamePlay {
 		initVals.rooms[room].currentWord = "";
 		initVals.rooms[room].usersGuessedName = [];
 		initVals.rooms[room].points[initVals.rooms[room].currentDrawer]
-			+= Math.floor(initVals.rooms[room].turn.timeTotal / (initVals.rooms[room].userCount - 1)) * constants.drawerPointFactor;
+			+= Math.floor(initVals.rooms[room].turn.timeTotal / (initVals.rooms[room].userCount - 1))
+			* constants.drawerPointFactor;
 		initVals.rooms[room].turn.timeTotal = 0;
 		initVals.rooms[room].usersGuessed = 0;
 		if (!initVals.rooms[room].cleared) {
@@ -132,7 +133,8 @@ export default class gamePlay {
 		initVals.rooms[room].cache.letters = [];
 		initVals.rooms[room].turnNumber += 1;
 		initVals.rooms[room].points[initVals.rooms[room].currentDrawer]
-			+= Math.floor(initVals.rooms[room].turn.timeTotal / (initVals.rooms[room].userCount - 1)) * constants.drawerPointFactor;
+			+= Math.floor(initVals.rooms[room].turn.timeTotal / (initVals.rooms[room].userCount - 1))
+			* constants.drawerPointFactor;
 		initVals.rooms[room].turn.timeTotal = 0;
 		if (!initVals.rooms[room].cleared) {
 			clearInterval(initVals.rooms[room].wordRevealInterval);
