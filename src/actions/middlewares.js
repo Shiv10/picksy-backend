@@ -1,6 +1,7 @@
 import User from "../models";
+import constants from "../tools/constants";
 
-const whitelist = ["http://localhost:3001", "http://localhost:3002"];
+const whitelist = process.env.NODE_ENV === "production" ? constants.url : constants.urlDev;
 
 export default {
 	origin(origin, callback) {
