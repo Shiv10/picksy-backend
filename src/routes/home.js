@@ -1,5 +1,7 @@
 import express from "express";
+import { logger } from "express-winston";
 import * as initVals from "../actions/initFill";
+
 
 const router = express.Router();
 
@@ -8,18 +10,6 @@ router.get("/", (req, res) => {
 		res.render("roomSelection", { username: req.session.user.username });
 		return;
 	}
-	req.session.user = {
-		name: "Rohan Mukherjee",
-		username: "roerohan",
-		email: "rohan.mukherjee2018@vitstudent.ac.in",
-		mobile: 7980619447,
-		regNo: "18BCE0221",
-		gender: "M",
-		scope: ["user", "csi"],
-		iat: 1583605452,
-		exp: 1584037452,
-		room: "",
-	};
 	res.render("roomSelection", { username: req.session.user.username });
 });
 
@@ -28,4 +18,8 @@ router.post("/currRoom", (req, res) => {
 	res.end();
 });
 
+router.post("/", (req, res) => {
+	req.session.user.username = req.body.name;
+	res.end();
+});
 export default router;

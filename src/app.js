@@ -43,5 +43,9 @@ app.use("/gameLobby", gameLobby); // The waiting area before the game begins
 app.use("/game", game); // The page where you play the game
 
 app.get("/", (req, res) => {
+	req.session.user = {
+		username: "",
+		room: "",
+	};
 	res.render("landingPage");
 });
