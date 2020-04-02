@@ -21,6 +21,14 @@ import game from "./routes/game";
 export const app = express();
 export const server = http.Server(app);
 
+const checkSession = (req, res, next) => {
+	if (req.session.user.username === "") {
+		res.redirect("/");
+		return;
+	}
+	next();
+};
+
 socketHandler(server, constants.corsOptions);
 
 app.set("view engine", "ejs");
@@ -37,10 +45,10 @@ app.use(json());
 app.use(session({ secret: "Shh, its a secret!" }));
 // app.use(ensureAuthenticated);
 
-app.use("/auth", auth);
-app.use("/home", home); // The page where you add or create a room
-app.use("/gameLobby", gameLobby); // The waiting area before the game begins
-app.use("/game", game); // The page where you play the game
+app.use("/auth", checkSession, auth);
+app.use("/home", checkSession, home); // The page where you add or create a room
+app.use("/gameLobby", checkSession, gameLobby); // The waiting area before the game begins
+app.use("/game", checkSession, game); // The page where you play the game
 
 app.get("/", (req, res) => {
 	req.session.user = {
