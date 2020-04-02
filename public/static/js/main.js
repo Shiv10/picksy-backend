@@ -308,7 +308,7 @@ window.addEventListener("load", () => {
 			dispName.innerHTML = "";
 			wordCon.innerHTML = "";
 			clearInterval(t);
-			window.location.replace("/gameLobby?session=false");
+			window.location.replace("/home");
 		});
 		function countDown() {
 			p -= 1;
@@ -341,7 +341,7 @@ window.addEventListener("load", () => {
 		dispTime.innerHTML = "Everyone left! What are you doing here?";
 		dispName.innerHTML = "";
 		wordCon.innerHTML = "";
-		window.location.replace("/home?session=false");
+		window.location.replace("/home");
 	});
 
 	socket.on("word-guessed", (data) => {

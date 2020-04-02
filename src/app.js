@@ -46,14 +46,13 @@ app.use(session({ secret: "Shh, its a secret!" }));
 // app.use(ensureAuthenticated);
 
 app.use("/auth", checkSession, auth);
-app.use("/home", checkSession, home); // The page where you add or create a room
+app.use("/home", home); // The page where you add or create a room
 app.use("/gameLobby", checkSession, gameLobby); // The waiting area before the game begins
 app.use("/game", checkSession, game); // The page where you play the game
 
 app.get("/", (req, res) => {
 	req.session.user = {
 		username: "",
-		room: "",
 	};
 	res.render("landingPage");
 });

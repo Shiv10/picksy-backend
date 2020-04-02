@@ -14,17 +14,7 @@ $(document).ready(() => {
 		if (count > 0) return;
 		const t = e.target.id;
 		console.log(t);
-		$.ajax({
-			url: "/home/currRoom",
-			type: "post",
-			data: { room: t },
-			dataType: "application/json",
-			complete: () => {
-				// called when complete
-				console.log("process complete");
-				window.location.replace("/gameLobby");
-			},
-		});
+		window.location.replace(`/gameLobby?room=${t}`);
 		count += 1;
 	});
 });

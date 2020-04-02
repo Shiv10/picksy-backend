@@ -13,6 +13,6 @@ $(document).ready(() => {
 		count += 1;
 	});
 	socket.on("redirect", () => {
-		window.location.replace("/game");
+		window.location.replace(`/game?room=${roomVal}`);
 	});
 });

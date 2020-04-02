@@ -6,16 +6,7 @@ import * as initVals from "../actions/initFill";
 const router = express.Router();
 
 router.get("/", (req, res) => {
-	if (req.query.session !== undefined) {
-		res.render("roomSelection", { username: req.session.user.username });
-		return;
-	}
 	res.render("roomSelection", { username: req.session.user.username });
-});
-
-router.post("/currRoom", (req, res) => {
-	req.session.user.room = req.body.room;
-	res.end();
 });
 
 router.post("/", (req, res) => {
