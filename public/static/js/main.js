@@ -353,7 +353,7 @@ window.addEventListener("load", () => {
 		dispTime.innerHTML = "Everyone left! What are you doing here?";
 		dispName.innerHTML = "";
 		wordCon.innerHTML = "";
-		window.location.replace("/gameLobby?session=false");
+		window.location.replace("/home?session=false");
 	});
 
 	socket.on("word-guessed", (data) => {

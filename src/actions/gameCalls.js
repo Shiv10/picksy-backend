@@ -210,6 +210,7 @@ export default class gamePlay {
 		initVals.rooms[room].usersGuessed = 0;
 		initVals.rooms[room].usersGuessedName = [];
 		initVals.rooms[room].turnNumber = 0;
+		initVals.rooms[room].startCount = 0;
 		initVals.rooms[room].turnOn = false;
 		clearInterval(initVals.rooms[room].wordRevealInterval);
 		initVals.rooms[room].wordRevealInterval = null;
