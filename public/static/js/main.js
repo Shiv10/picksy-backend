@@ -14,22 +14,10 @@ window.addEventListener("load", () => {
 	let name = "";
 
 	// eslint-disable-next-line no-constant-condition
-	while (true) {
-		name = prompt("Enter your name");
-		if (name !== "") {
-			socket.emit("new user", { name, room });
-			break;
-		}
-	}
 
-	if (name === null) {
-		const mainDiv = document.getElementById("main");
-		const disconnectMessage = document.getElementById("no-name");
-		disconnectMessage.innerHTML = "Please refresh and join again with a name!";
-		mainDiv.style.display = "none";
-		socket.disconnect();
-		return;
-	}
+	const nameVal = document.getElementById("getName");
+	name = nameVal.innerHTML;
+	socket.emit("new user", { name, room });
 
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
@@ -320,7 +308,7 @@ window.addEventListener("load", () => {
 			dispName.innerHTML = "";
 			wordCon.innerHTML = "";
 			clearInterval(t);
-			window.location.replace("/gameLobby?session=false");
+			window.location.replace("/home");
 		});
 		function countDown() {
 			p -= 1;
@@ -353,7 +341,7 @@ window.addEventListener("load", () => {
 		dispTime.innerHTML = "Everyone left! What are you doing here?";
 		dispName.innerHTML = "";
 		wordCon.innerHTML = "";
-		window.location.replace("/gameLobby?session=false");
+		window.location.replace("/home");
 	});
 
 	socket.on("word-guessed", (data) => {
