@@ -167,16 +167,14 @@ export default (app) => {
 				gameSpace.to(userRoom).emit("leave");
 				return;
 			}
-			// delete[room.points[socket.id]]; Scribble.io it doesn't remove user from scoreboard
+			// delete[room.points[socket.id]]; Skribbl.io it doesn't remove user from scoreboard
 			// on disconnection, but we can add this functionality
 			rooms[userRoom].userCount -= 1;
 			if (rooms[userRoom].users[socket.id] === rooms[userRoom].currentDrawer && rooms[userRoom].userCount > 1) {
-				delete rooms[userRoom].users[socket.id];
 				logger.info("Drawer disconnected!");
 				gamePlay.drawerDisconnected(gameSpace, rooms[userRoom].timeout, userRoom);
-			} else {
-				delete rooms[userRoom].users[socket.id];
 			}
+			delete rooms[userRoom].users[socket.id];
 		});
 	});
 
