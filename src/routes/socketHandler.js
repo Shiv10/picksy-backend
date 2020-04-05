@@ -9,6 +9,8 @@ import { players, rooms } from "../actions/initFill";
 import Game from "../actions/gameCalls";
 import Room from "../actions/roomCalls";
 
+const waitintPlayers = {};
+
 export default (app) => {
 	const io = socketio.listen(app);
 
@@ -16,10 +18,10 @@ export default (app) => {
 	waitSpace.on("connection", (socket) => {
 		logger.info("User Connected to Waiting room!");
 		const room = socket.handshake.query.userRoom;
-		logger.info(room);
 		socket.join(room);
+		waitintPlayers[socket.id] = room;
 
-		if (rooms[room].startCount > 1) {
+		if (rooms[room].keys.length > 1) {
 			socket.emit("redirect");
 		}
 		socket.on("start", (clientRoom) => {
@@ -27,6 +29,12 @@ export default (app) => {
 			if (rooms[clientRoom].startCount > 1) {
 				waitSpace.to(clientRoom).emit("redirect");
 			}
+		});
+
+		socket.on("disconnect", () => {
+			const userRoom = waitintPlayers[socket.id];
+			rooms[userRoom].startCount -= 1;
+			delete waitintPlayers[socket.id];
 		});
 	});
 
