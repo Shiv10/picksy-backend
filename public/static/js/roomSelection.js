@@ -10,11 +10,20 @@ $(document).ready(() => {
 		}
 	});
 	let count = 0;
-	$("button").click((e) => {
+	const join = document.getElementById("join");
+	const room = document.getElementById("room");
+	join.addEventListener("click", () => {
 		if (count > 0) return;
-		const t = e.target.id;
-		console.log(t);
-		window.location.replace(`/gameLobby?roomId=${t}`);
+		if (room.value === "") return;
+		$.ajax({
+			url: "/home/getRoomId",
+			type: "post",
+			data: { roomId: room.value },
+			dataType: "application/json",
+			complete: () => {
+				window.location.replace("/gameLobby");
+			},
+		});
 		count += 1;
 	});
 });

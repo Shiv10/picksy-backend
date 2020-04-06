@@ -14,4 +14,9 @@ router.post("/", (req, res) => {
 	res.end();
 });
 
+router.post("/getRoomId", (req, res) => {
+	req.session.user.roomId = req.body.roomId;
+	res.end();
+});
+
 export default router;
