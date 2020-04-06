@@ -13,4 +13,5 @@ router.post("/", (req, res) => {
 	req.session.user.username = req.body.name;
 	res.end();
 });
+
 export default router;

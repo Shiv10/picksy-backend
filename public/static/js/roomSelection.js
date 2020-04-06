@@ -14,7 +14,7 @@ $(document).ready(() => {
 		if (count > 0) return;
 		const t = e.target.id;
 		console.log(t);
-		window.location.replace(`/gameLobby?room=${t}`);
+		window.location.replace(`/gameLobby?roomId=${t}`);
 		count += 1;
 	});
 });

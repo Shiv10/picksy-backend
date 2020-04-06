@@ -1,9 +1,5 @@
-import User from "./user.model";
-import Word from "./word.model";
-import Match from "./match.model";
-
-export default {
-	User,
-	Word,
-	Match,
-};
+/* eslint-disable import/export */
+export * from "./user.model";
+export * from "./word.model";
+export * from "./match.model";
+export * from "./room.model";

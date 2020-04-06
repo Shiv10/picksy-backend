@@ -7,8 +7,7 @@
 import { socketURL } from "./config.js";
 
 window.addEventListener("load", () => {
-	const getRoom = document.getElementById("getRoom");
-	const room = getRoom.innerHTML;
+	const room = document.getElementById("getRoom").innerHTML;
 	// eslint-disable-next-line no-undef
 	const socket = io(`${socketURL}/gameSpace`, { query: `userRoom=${room}` });
 	let name = "";

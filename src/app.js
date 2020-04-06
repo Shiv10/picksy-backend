@@ -21,13 +21,7 @@ import game from "./routes/game";
 export const app = express();
 export const server = http.Server(app);
 
-const checkSession = (req, res, next) => {
-	if (req.session.user.username === "") {
-		res.redirect("/");
-		return;
-	}
-	next();
-};
+const checkSession = (req, res, next) => (!req.session.user ? res.redirect("/") : next());
 
 socketHandler(server, constants.corsOptions);
 
@@ -40,7 +34,7 @@ app.use("/static", express.static(`${__dirname}/../public/static`));
 
 app.use(cors(corsHandler));
 app.use(cookieParser());
-app.use(urlencoded({ extended: true }));
+app.use(urlencoded({ extended: false }));
 app.use(json());
 app.use(session({ secret: "Shh, its a secret!" }));
 // app.use(ensureAuthenticated);

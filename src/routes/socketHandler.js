@@ -8,6 +8,7 @@ import { logger } from "../tools/loggers";
 import { players, rooms } from "../actions/initFill";
 import Game from "../actions/gameCalls";
 import Room from "../actions/roomCalls";
+import RoomStore from "../models/room.model";
 
 const waitintPlayers = {};
 
