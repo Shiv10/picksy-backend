@@ -31,19 +31,58 @@ window.addEventListener("load", () => {
 	let canDraw = false;
 	const wordCon = document.getElementById("word-reveal");
 	const fillBtn = document.getElementById("fill");
-	const selectedColor = document.getElementById("colorPicker");
 	let fill = false;
 	let saveData;
 	let undoStackDrawer = [];
+	let selectedColor = 'c-0';
+	let selectedStroke = 's-0';
+	let selectedTool = 'pen';
+	
 
 	const undoLimit = 3;
+
+	
+	document.querySelector('.palette').addEventListener('click', (event) => {
+		let colorID = event.target.id;
+		if(colorID === 'c-0' || colorID === 'c-1' || colorID === 'c-2' || colorID === 'c-3' || colorID === 'c-4' || colorID === 'c-5' || colorID === 'c-6' || colorID === 'c-7' || colorID === 'c-8' || colorID === 'c-9') {
+			document.getElementById(selectedColor).classList.toggle('selected');
+			selectedColor = colorID;
+			document.getElementById(selectedColor).classList.toggle('selected');
+		}
+	
+	})
+
+	
+
+	document.querySelector('.tools').addEventListener('click', (event) => {
+		let toolID = event.target.id;
+		if(toolID === 'eraser' || toolID === 'fill' || toolID === 'undo' || toolID === 'save' || toolID === 'clear-canvas' || toolID === 'pen'){
+			document.getElementById(selectedTool).classList.toggle('selected');
+			selectedTool = toolID;
+			document.getElementById(selectedTool).classList.toggle('selected');
+		}
+		
+	})
+
+
+
+	document.querySelector('.strokes').addEventListener('click', (event) => {
+		let strokeID = event.target.id;
+		if(strokeID === 's-0' || strokeID === 's-1' || strokeID === 's-2' || strokeID === 's-3') {
+			document.getElementById(selectedStroke).classList.toggle('selected');
+			selectedStroke = strokeID;
+			document.getElementById(selectedStroke).classList.toggle('selected');	
+		}
+		
+	})
+
 
 	function send() {
 		const timeStamp = new Date();
 		const ct = Math.floor(timeStamp.getTime() / 1000);
 		if (msg.value === "") return;
 		socket.emit("message", { text: msg.value, time: ct, room });
-		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
+		messageCon.innerHTML += `<div class="chat-element row px-1 py-2"><div class="chatName"><strong>${name}:</strong>&nbsp;</div><div class="chatMsg">${msg.value}</div></div>`;
 		msg.value = "";
 	}
 
@@ -94,11 +133,22 @@ window.addEventListener("load", () => {
 		if (!canDraw) return;
 		if (fill) return;
 
-		ctx.strokeStyle = selectedColor.value;
-		ctx.lineWidth = 5;
+		let eraser = false;
+
+		if(selectedTool === 'eraser') {
+			ctx.strokeStyle = "#FFFFFF";
+			eraser = true;
+		} else {
+			ctx.strokeStyle = document.getElementById(selectedColor).getAttribute('name');
+		}
+		
+		if(selectedStroke === 's-0'){ctx.lineWidth = 5}
+		else if(selectedStroke === 's-1') {ctx.lineWidth = 10}
+		else if(selectedStroke === 's-2') {ctx.lineWidth = 15}
+		else if(selectedStroke === 's-3') {ctx.lineWidth = 20}
 		ctx.lineCap = "round";
-		const x = e.clientX - 17;
-		const y = e.clientY - 17;
+		const x = e.clientX - 200;
+		const y = e.clientY - 200;
 		ctx.lineTo(x, y);
 		ctx.stroke();
 		ctx.beginPath();
@@ -107,9 +157,12 @@ window.addEventListener("load", () => {
 		socket.emit("draw", {
 			x,
 			y,
-			color: selectedColor.value,
+			lwidth: ctx.lineWidth,
+			color: ctx.strokeStyle,
 			room,
 		});
+
+		
 	}
 
 	function startPosition(e) {
@@ -127,7 +180,7 @@ window.addEventListener("load", () => {
 	}
 
 	socket.on("draw", (data) => {
-		ctx.lineWidth = 5;
+		ctx.lineWidth = data.lwidth;
 		ctx.lineCap = "round";
 		ctx.strokeStyle = data.color;
 
@@ -165,12 +218,12 @@ window.addEventListener("load", () => {
 		undoStackDrawer.push(saveData);
 		fill = false;
 		socket.emit("fill", {
-			x: e.clientX - 17,
-			y: e.clientY - 17,
-			color: selectedColor.value,
+			x: e.clientX - 200,
+			y: e.clientY - 200,
+			color: document.getElementById(selectedColor).getAttribute('name'),
 			room,
 		});
-		fillColor({ x: e.clientX - 17, y: e.clientY - 17 }, selectedColor.value);
+		fillColor({ x: e.clientX - 200, y: e.clientY - 200 }, document.getElementById(selectedColor).getAttribute('name'));
 	};
 
 	socket.on("fill", (data) => {
@@ -293,7 +346,7 @@ window.addEventListener("load", () => {
 		const ct = Math.floor(timeStamp.getTime() / 1000);
 		console.log(`Time of round start: ${data.time}`);
 		console.log(`Current time is ${ct}`);
-		dispName.innerHTML = `${data.name} is drawing!`;
+		dispName.innerHTML = `<strong>${data.name}</strong> is drawing!`;
 		let nextTurn = false;
 
 		socket.on("next-turn", () => {
@@ -371,12 +424,13 @@ window.addEventListener("load", () => {
 
 	function updateScoreboard(points) {
 		const board = document.getElementById("scorecard");
+		const playerList = document.getElementById("player-list");
 		const keys = Object.keys(points);
 		const l = keys.length;
 		board.innerHTML = "";
-		board.innerHTML = "<h4><strong>Scorecard</strong></h4>";
+		board.innerHTML = '<div class="heading-leaderboard text-center px-1 py-2"><strong>LEADERBOARD</strong></div>';
 		for (let i = 0; i < l; i += 1) {
-			board.innerHTML += `<p>${keys[i]}: ${points[keys[i]]}`;
+			playerList.innerHTML += `<div class="leader-element row px-1 py-2"><div class="leaderName">${keys[i]}</div><div class="leaderPoints">${points[keys[i]]}</div></div>`;
 		}
 	}
 

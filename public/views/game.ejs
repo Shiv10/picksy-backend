@@ -5,6 +5,8 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
 		<link rel="stylesheet" href="static/css/main.css" />
 		<title>Game</title>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
@@ -13,7 +15,7 @@
 	</head>
 
 	<body>
-		<h1 id="no-name"></h1>
+		<!-- <h1 id="no-name"></h1>
 		<div class="demo" id="main">
 			<div id="container">
 				<div id="draw">
@@ -68,6 +70,102 @@
 		<button id="save">Save</button>
 		</div>
 		<h1 id="getRoom"><%=room%></h1>
-		<h1 id="getName"><%=username%></h1>
+		<h1 id="getName"><%=username%></h1> -->
+
+		<div class="container-fluid main cc">
+			<div class="header row rc">
+				<div class="timer-round col cc">
+					<div class="timer text-center"><h2 id="timer">Game will begin shortly</h2></div>
+					<div class="round text-center row rc">
+						<select id="sel">
+							<option value="" id="o1" selected>Not your turn</option>
+							<option value="" id="o1">Not your turn</option>
+							<option value="" id="o2">Not your turn</option>
+							<option value="" id="o3">Not your turn</option>
+						</select>
+						<button class="round-btn px-2 py-1" id="chose1" style="display: none;">Start Drawing</button>
+						<button class="round-btn px-2 py-1" id="chose2" style="display: none;">Start Drawing</button>
+						<button class="round-btn px-2 py-1" id="chose3" style="display: none;">Start Drawing</button>
+					</div>
+				</div>
+				<div class="drawer-word col-8 cc">
+					<div class="drawer"><h2 id="drawer"></h2></div>
+					<div class="word text-center"><h2 id="word-holder"></h2></div>
+					<div id="word-reveal"></div>
+				</div>
+				<div class="logo text-center col"><img class="logo-img" src="static/images/piksylogo.svg"></div>
+			</div>
+	
+			<div class="body row rc">
+	
+				<div class="leftBody col cc">
+					<div class="leaderboard" id="scoreboard">
+						<div class="heading-leaderboard text-center px-1 py-2">
+							<strong>LEADERBOARD</strong>
+						</div>
+						<div class="leaders mx-2 px-1" id="player-list"></div>
+					</div>
+					<button class=" btn leave-btn mt-2">Leave</button>
+				</div>
+	
+				<div class="midBody col-8 cc">
+					<div class="drawArea" id="draw">
+						<canvas id="canvas"></canvas>
+					</div>
+					<div class="bottomMid row mt-2 mx-2">
+						<div class="palette" id="p-1">
+							<div class="paletteR1 row" id="p-2`">
+								<div class="color selected" style="background-color: black;" name="#000000" id="c-0"></div>
+								<div class="color" style="background-color: violet;" name="#EE82EE" id="c-1"></div>
+								<div class="color" style="background-color: indigo;" name="#4B0082" id="c-2"></div>
+								<div class="color" style="background-color: blue;" name="#0000FF" id="c-3"></div>
+								<div class="color" style="background-color: green;" name="#008000" id="c-4"></div>
+							</div>
+							<div class="paletteR2 row">
+								<div class="color" style="background-color: yellow;" name="#FFFF00" id="c-5"></div>
+								<div class="color" style="background-color: orange;" name="#FFA500" id="c-6"></div>
+								<div class="color" style="background-color: red;" name="#FF0000" id="c-7"></div>
+								<div class="color" style="background-color: brown;" name="#A52A2A" id="c-8"></div>
+								<div class="color" style="background-color: grey;" name="#808080" id="c-9"></div>
+							</div>
+						</div>
+						<div class="tools row py-2">
+							<div class="tool selected" id="pen">P</div>
+							<div class="tool" id="eraser" name="#FFFFFF">E</div>
+							<div class="tool" id="fill">F</div>
+							<div class="tool" id="clear-canvas">C</div>
+							<div class="tool" id="undo">U</div>
+							<div class="tool" id="save">S</div>
+						</div>
+						<div class="strokes row py-2">
+							<div class="stroke my-3 mr-1 selected" id="s-0"></div>
+							<div class="stroke my-2 mr-1" id="s-1"></div>
+							<div class="stroke my-1 mr-1" id="s-2"></div>
+							<div class="stroke" id="s-3"></div>
+						</div>
+					</div>
+					<h4 id="getRoom"><%=room%></h4>
+					<h4 id="getName"><%=username%></h4>
+				</div>
+	
+				<div class="rightBody col cc">
+	
+					<div class="chat-box">
+						<div class="chat mx-2 px-1" class="txt" id="message-container"></div>
+					</div>
+	
+					<div class="guess-box mt-2">
+						<input type="text" id="message-input" class="guess" placeholder="Guess or Chat">
+					</div>
+	
+					<button class=" btn send-btn mt-2" id="send-button">SEND</button>
+	
+				</div>
+	
+			</div>
+		</div>
+		
+		<!-- <h4 id="getRoom"><%=room%></h4>
+		<h4 id="getName"><%=username%></h4> -->
 	</body>
 </html>

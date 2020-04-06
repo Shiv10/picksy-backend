@@ -1,4 +1,4 @@
-* {
+/* * {
 	box-sizing: border-box;
 }
 #draw {
@@ -60,4 +60,213 @@
 	height: 20%;
 	width: 40%;
 	border: 2px solid black;
+} */
+
+*{
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,body{
+   background-color: #00d5ff;
+   margin: 0;
+   padding: 0;
+   overflow: hidden;
+   font-size: 18px;
+   height: 100vh;
+   width: 100vw;
+   color: #000;
+}
+
+.logo-img{
+    margin-top: -75px;
+    margin-bottom: -75px;
+}
+
+.main{
+    height: 100vh;
+    width: 100vw;;
+}
+
+.cc{
+    display: flexbox;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.rc{
+    display: flexbox;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.body{
+    height: 85%;
+
+}
+
+.top{
+    height: 60%;
+    background-color: #fff;
+}
+
+
+.rightBody, .leftBody{
+    height: 100%;
+}
+
+
+.chat-box, .leaderboard, .drawArea{
+    height: 75%;
+    background-color: #fff;
+    overflow-y: auto;
+    border: 2px solid #000;
+}
+
+.drawArea{
+    overflow-y: hidden;
+    border-radius: 5px;
+}
+
+#canvas{
+    height: 100%;
+    width: 100%;
+}
+
+
+.chat-element, .leader-element {
+    padding: 10px;
+    border-bottom: 1px solid #e7e7e7;
+}
+
+.chat-element:first-child, .leader-element:first-child { border-top: 1px solid #e7e7e7; }
+.chat-element:nth-child(even), .leader-element:nth-child(even) { background-color: #f7f7f7; }
+
+
+
+.guess-box{
+    border: 2px solid #000;
+    border-radius: 5px;
+    height: 10%;
+}
+
+.guess{
+    height: 100%;
+    width: 100%;
+    background-color: #fff;
+}
+
+.send-btn, .leave-btn{
+    width: 100%;
+    background-color: purple;
+
+}
+
+.color{
+    height:1.5rem;
+    width: 1.5rem;
+    border: none;
+    margin-bottom: 2px;
+    margin-right: 2px;
+}
+
+.color:focus{
+    outline: none;
+}
+
+
+.bottomMid{
+    display: flexbox;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.tool{
+    height:2.5rem;
+    width: 2.5rem;
+    margin-right: 5px;
+    border: none;
+    background-color: #fff;
+}
+
+.stroke{
+    border: none;
+    border-radius: 50%;
+    background-color: #fff;
+}
+
+#s-0{
+    height: .8rem;
+    width: .8rem;
+}
+
+#s-1{
+    height: 1.4rem;
+    width: 1.4rem;
+}
+
+#s-2{
+    height: 2rem;
+    width: 2rem;
+}
+
+#s-3{
+    height: 2.5rem;
+    width: 2.5rem;
+}
+
+.stroke:focus{
+    outline: none;
+}
+
+.selected{
+    border: 2px solid #000;
+}
+
+.heading-leaderboard{
+    border: 2px solid #000;
+    border-bottom: 4px solid #000;
+    width: 100%;
+}
+
+.round-btn{
+    background-color: #fff850;
+    border: 2px solid #ff6000;
+    border-radius: 5px;
+}
+
+
+
+@media only screen and  (min-width: 1500px){
+    html{
+        font-size: 24px;
+    }
+
+
+}
+@media only screen and  (max-width: 1400px){
+    html{
+        font-size: 18px;
+    }
+}
+@media only screen and  (max-width: 1023px){
+    html{
+        font-size: 15px;
+    }
+}
+@media only screen and  (max-width: 768px){ 
+    html{ 
+        font-size: 11px;
+    }
+}
+@media only screen and  (max-width: 480px){
+    html{ 
+        font-size: 8px;
+    } 
+}
+@media only screen and  (max-width: 325px){
+    html{
+        font-size: 6px;
+    } 
 }
