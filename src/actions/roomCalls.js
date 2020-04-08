@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import shortid from "shortid";
 
 import { logger } from "../tools/loggers";
@@ -14,19 +15,12 @@ export async function createPrivateRoom() {
 }
 
 export async function getPublicRoom() {
-	const roomId = getMostFilledRoom();
+	const roomId = await getMostFilledRoom();
 	return roomId;
 }
 
 async function getMostFilledRoom() {
-	const cursor = Room.find({ count: { $lt: 10 } });
-	let document;
-	let roomId;
-	// eslint-disable-next-line no-cond-assign, no-await-in-loop
-	while ((document = await cursor.next())) {
-		roomId = document;
-		break;
-	}
+	let { roomId } = await Room.findOne({ userCount: { $lt: 10 } }, { userCount: 1, roomId: 1 });
 
 	if (!roomId) {
 		const newRoom = new Room();
@@ -35,6 +29,5 @@ async function getMostFilledRoom() {
 		newRoom.type = "PUB";
 		await newRoom.save();
 	}
-
 	return roomId;
 }

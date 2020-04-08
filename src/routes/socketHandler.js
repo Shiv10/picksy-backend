@@ -18,6 +18,7 @@ export default (app) => {
 	const waitSpace = io.of("/waitSpace");
 	waitSpace.on("connection", (socket) => {
 		logger.info("User Connected to Waiting room!");
+
 		const room = socket.handshake.query.userRoom;
 		socket.join(room);
 		waitintPlayers[socket.id] = room;
@@ -25,6 +26,7 @@ export default (app) => {
 		if (rooms[room].keys.length > 1) {
 			socket.emit("redirect");
 		}
+
 		socket.on("start", (clientRoom) => {
 			rooms[clientRoom].startCount += 1;
 			if (rooms[clientRoom].startCount > 1) {
@@ -102,8 +104,8 @@ export default (app) => {
 
 		socket.on("message", (data) => {
 			if (
-				data.text === rooms[data.room].currentWord
-				&& rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
+				data.text === rooms[data.room].currentWord &&
+				rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
 			) {
 				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
 				rooms[data.room].points[rooms[data.room].users[socket.id]] += gamePlay.calculatePoints(data.time, data.room);

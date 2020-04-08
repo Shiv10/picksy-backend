@@ -28,5 +28,5 @@ app.use(json());
 app.use("/game", game); // The page where you play the game
 
 app.get("/", (req, res) => {
-	res.render("roomSelection");
+	res.render("landing");
 });

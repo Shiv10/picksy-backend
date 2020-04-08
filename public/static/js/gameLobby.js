@@ -3,15 +3,15 @@
 import { socketURL } from "./config.js";
 
 $(document).ready(() => {
-	const roomId = document.getElementById("room").innerHTML;
-	const socket = io(`${socketURL}/waitSpace`, { query: `userRoom=${roomVal}` });
+	const roomId = $("#roomId");
+	const socket = io(`${socketURL}/waitSpace`, { query: `userRoom=${roomId}` });
 	let count = 0;
 	$("button").click((e) => {
 		if (count > 0) return;
-		socket.emit("start", roomVal);
+		socket.emit("start", roomId);
 		count += 1;
 	});
 	socket.on("redirect", () => {
-		window.location.replace(`/game?room=${roomVal}`);
+		window.location.replace(`/game?${roomId}`);
 	});
 });

@@ -1,29 +1,19 @@
 /* eslint-disable import/extensions */
-import { socketURL } from "./config.js";
+import { socketURL, httpURL } from "./config.js";
 
 $(document).ready(() => {
 	$("#play").click((e) => {
 		e.preventDefault();
-		if (!$("#username")) {
-			$("error").html("!Username is required");
+		if ($("#username").val() === "") {
+			$("#error").html("!Username is required");
+			return;
 		}
-		const data = {
-			username,
-			createNew: false,
-		};
 
-		$.ajax({
-			type: "POST",
-			data,
-			contentType: "application/json",
-			url: "/game",
-			success: (response) => {
-				if (response.success) {
-					window.replace(`/game=${response.data}`);
-				} else {
-					window.replace("/");
-				}
-			},
+		$.get("/game/getID", {
+			username: $("#username").val(),
+			createNew: false,
+		}, (data) => {
+			document.write(data);
 		});
 	});
 });
