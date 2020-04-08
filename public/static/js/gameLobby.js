@@ -3,8 +3,7 @@
 import { socketURL } from "./config.js";
 
 $(document).ready(() => {
-	const room = document.getElementById("room");
-	const roomVal = room.innerHTML;
+	const roomId = document.getElementById("room").innerHTML;
 	const socket = io(`${socketURL}/waitSpace`, { query: `userRoom=${roomVal}` });
 	let count = 0;
 	$("button").click((e) => {

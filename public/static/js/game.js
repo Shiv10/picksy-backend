@@ -7,30 +7,25 @@
 import { socketURL } from "./config.js";
 
 window.addEventListener("load", () => {
-	const room = document.getElementById("getRoom").innerHTML;
-	// eslint-disable-next-line no-undef
-	const socket = io(`${socketURL}/gameSpace`, { query: `userRoom=${room}` });
-	let name = "";
+	const roomId = $("#roomId").val();
+	const username = $("#username").val();
 
-	// eslint-disable-next-line no-constant-condition
+	const socket = io(`${socketURL}/gameSpace`, { query: `userRoom=${roomId}` });
 
-	const nameVal = document.getElementById("getName");
-	name = nameVal.innerHTML;
-	socket.emit("new user", { name, room });
+	socket.emit("new user", { name: username, room: roomId });
 
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
-	// eslint-disable-next-line no-undef
 
-	const messageCon = document.getElementById("message-container");
-	const btn = document.getElementById("send-button");
-	const msg = document.getElementById("message-input");
-	const undoBtn = document.getElementById("undo");
-	const saveBtn = document.getElementById("save");
+	const messageCon = $("#message-container").val();
+	const btn = $("#send-button").val();
+	const msg = $("#message-input").val();
+	const undoBtn = $("#undo").val();
+	const saveBtn = $("#save").val();
 	let canDraw = false;
-	const wordCon = document.getElementById("word-reveal");
-	const fillBtn = document.getElementById("fill");
-	const selectedColor = document.getElementById("colorPicker");
+	const wordCon = $("#word-reveal").val();
+	const fillBtn = $("#fill").val();
+	const selectedColor = $("#colorPicker").val();
 	let fill = false;
 	let saveData;
 	let undoStackDrawer = [];
@@ -41,8 +36,8 @@ window.addEventListener("load", () => {
 		const timeStamp = new Date();
 		const ct = Math.floor(timeStamp.getTime() / 1000);
 		if (msg.value === "") return;
-		socket.emit("message", { text: msg.value, time: ct, room });
-		messageCon.innerHTML += `<strong>${name}</strong>: ${msg.value}<br>`;
+		socket.emit("message", { text: msg.value, time: ct, room: roomId });
+		messageCon.innerHTML += `<strong>${username}</strong>: ${msg.value}<br>`;
 		msg.value = "";
 	}
 
@@ -63,7 +58,7 @@ window.addEventListener("load", () => {
 		console.log("Hey, sending data....");
 		const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 		const normalArray = Array.from(imgData.data);
-		socket.emit("state", { room, state: normalArray });
+		socket.emit("state", { room: roomId, state: normalArray });
 	});
 
 	socket.on("state", (data) => {
@@ -107,7 +102,7 @@ window.addEventListener("load", () => {
 			x,
 			y,
 			color: selectedColor.value,
-			room,
+			room: roomId,
 		});
 	}
 
@@ -122,7 +117,7 @@ window.addEventListener("load", () => {
 	function finishedPosition() {
 		painting = false;
 		ctx.beginPath();
-		socket.emit("stop", { room });
+		socket.emit("stop", { room: roomId });
 	}
 
 	socket.on("draw", (data) => {
@@ -144,7 +139,7 @@ window.addEventListener("load", () => {
 	clrbtn.addEventListener("click", clearCanvas);
 	function clearCanvas() {
 		if (!canDraw) return;
-		socket.emit("canvas-cleared", { room });
+		socket.emit("canvas-cleared", { room: roomId });
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 	}
 
@@ -167,7 +162,7 @@ window.addEventListener("load", () => {
 			x: e.clientX - 17,
 			y: e.clientY - 17,
 			color: selectedColor.value,
-			room,
+			room: roomId,
 		});
 		fillColor({ x: e.clientX - 17, y: e.clientY - 17 }, selectedColor.value);
 	};
@@ -193,7 +188,7 @@ window.addEventListener("load", () => {
 			ctx.putImageData(undoStackDrawer[undoStackDrawer.length - 1], 0, 0);
 			const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 			const normalArray = Array.from(imgData.data);
-			socket.emit("undo", { room, state: normalArray });
+			socket.emit("undo", { room: roomId, state: normalArray });
 			undoStackDrawer.pop();
 		} else {
 			alert("Nothing to Undo");
@@ -239,7 +234,7 @@ window.addEventListener("load", () => {
 			selectBtn1.style.display = "inline";
 			selectBtn1.addEventListener("click", () => {
 				selectBtn1.style.display = "none";
-				socket.emit("word-selected", { word: se.value, room });
+				socket.emit("word-selected", { word: se.value, room: roomId });
 				wh.innerHTML = `The word you selected is ${se.value}`;
 				selected = true;
 			});
@@ -254,7 +249,7 @@ window.addEventListener("load", () => {
 			selectBtn2.style.display = "inline";
 			selectBtn2.addEventListener("click", () => {
 				selectBtn2.style.display = "none";
-				socket.emit("word-selected", { word: se.value, room });
+				socket.emit("word-selected", { word: se.value, room: roomId });
 				wh.innerHTML = `The word you selected is ${se.value}`;
 				selected = true;
 			});
@@ -269,7 +264,7 @@ window.addEventListener("load", () => {
 			selectBtn3.style.display = "inline";
 			selectBtn3.addEventListener("click", () => {
 				selectBtn3.style.display = "none";
-				socket.emit("word-selected", { word: se.value, room });
+				socket.emit("word-selected", { word: se.value, room: roomId });
 				wh.innerHTML = `The word you selected is ${se.value}`;
 				selected = true;
 			});
@@ -285,7 +280,7 @@ window.addEventListener("load", () => {
 	socket.on("word-selected", (data) => {
 		undoStackDrawer = [];
 		console.log(JSON.stringify(data));
-		if (name === data.name) {
+		if (username === data.name) {
 			canDraw = true;
 		}
 		const timeStamp = new Date();
@@ -320,7 +315,7 @@ window.addEventListener("load", () => {
 			}
 
 			if (p <= 20) {
-				socket.emit("no-more-reveal", { room });
+				socket.emit("no-more-reveal", { room: roomId });
 			}
 		}
 	});

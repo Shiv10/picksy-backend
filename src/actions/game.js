@@ -9,8 +9,6 @@
 const { logger } = require("../tools/loggers");
 const constants = require("../tools/constants");
 
-const Participant = require("../models/participant.schema");
-
 class GAME {
 	constructor(options) {
 		this.io = options.io; // Check better way of getting this io file

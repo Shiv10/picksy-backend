@@ -1,20 +1,29 @@
-/* eslint-disable no-undef */
+/* eslint-disable import/extensions */
+import { socketURL } from "./config.js";
+
 $(document).ready(() => {
-	let count = 0;
-	const name = document.getElementById("name");
-	$("#login").click(() => {
-		if (name.value === "") return;
-		if (count > 0) return;
+	$("#play").click((e) => {
+		e.preventDefault();
+		if (!$("#username")) {
+			$("error").html("!Username is required");
+		}
+		const data = {
+			username,
+			createNew: false,
+		};
+
 		$.ajax({
-			url: "/home",
-			type: "post",
-			data: { name: name.value },
-			dataType: "application/json",
-			complete: () => {
-				// called when complete
-				window.location.replace("/home");
+			type: "POST",
+			data,
+			contentType: "application/json",
+			url: "/game",
+			success: (response) => {
+				if (response.success) {
+					window.replace(`/game=${response.data}`);
+				} else {
+					window.replace("/");
+				}
 			},
 		});
-		count += 1;
 	});
 });
