@@ -21,7 +21,7 @@ class GAME {
 	}
 
 	async init() {
-		this.users = null; // Participant.findAll();
+		this.users = getAllUsers(); // Participant.findAll();
 		this.getWords();
 		this.initOptionsFill();
 	}

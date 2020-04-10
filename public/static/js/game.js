@@ -10,7 +10,7 @@ window.addEventListener("load", () => {
 	const roomId = $("#roomId").val();
 	const username = $("#username").val();
 
-	const socket = io(`${socketURL}/gameSpace`, { query: `userRoom=${roomId}` });
+	const socket = io(`${socketURL}/gameSpace`, { roomId, username });
 
 	socket.emit("new user", { name: username, room: roomId });
 

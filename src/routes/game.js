@@ -6,13 +6,13 @@ import { logger } from "../tools/loggers";
 
 const router = express.Router();
 
-router.get("/getID", async (req, res) => {
-	if (!req.query.username || !req.query.createNew) {
+router.post("/getID", async (req, res) => {
+	if (!req.body.username || !req.body.createNew) {
 		return res.json({
 			success: false,
 		});
 	}
-	const { username, createNew } = req.query;
+	const { username, createNew } = req.body;
 
 	try {
 		let roomId;
@@ -21,7 +21,10 @@ router.get("/getID", async (req, res) => {
 		}
 		roomId = await getPublicRoom();
 
-		return res.render("gameLobby", { username, roomId });
+		return res.json({
+			success: true,
+			data: { username, roomId },
+		});
 	} catch (e) {
 		res.json({
 			success: false,

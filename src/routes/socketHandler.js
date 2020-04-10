@@ -2,6 +2,7 @@
 /* eslint-disable linebreak-style */
 /* eslint-disable no-use-before-define */
 import socketio from "socket.io";
+import redis from "redis";
 
 import constants from "../tools/constants";
 import { logger } from "../tools/loggers";
@@ -10,41 +11,56 @@ import Game from "../actions/gameCalls";
 import Room from "../actions/roomCalls";
 import RoomStore from "../models/room.model";
 
-const waitintPlayers = {};
+// const client = redis.createClient({
+// 	host: process.env.REDIS_HOST,
+// 	password: process.env.REDIS_PASSWORD,
+// });
+
+// client.flushall();
 
 export default (app) => {
 	const io = socketio.listen(app);
 
 	const waitSpace = io.of("/waitSpace");
-	waitSpace.on("connection", (socket) => {
+	waitSpace.on("connection", async (socket) => {
 		logger.info("User Connected to Waiting room!");
 
-		const room = socket.handshake.query.userRoom;
-		socket.join(room);
-		waitintPlayers[socket.id] = room;
+		const { username, room } = socket.handshake.query;
+		await socket.join(room);
 
-		if (rooms[room].keys.length > 1) {
+		logger.info(JSON.stringify(socket.rooms));
+		logger.info(JSON.stringify(io.sockets.adapter.rooms));
+		if (!io.sockets.adapter.rooms[room].storage) {
+			initStorage(io, room);
+		}
+
+		storage(io, room).users[socket.id] = username;
+		const allUsersInRoom = storage(io, room).storage.users.values();
+
+		waitSpace.to(room).emit("users-list", {
+			users: allUsersInRoom,
+		});
+
+		if (storage(io, room).keys.length > 1) {
 			socket.emit("redirect");
 		}
 
-		socket.on("start", (clientRoom) => {
-			rooms[clientRoom].startCount += 1;
-			if (rooms[clientRoom].startCount > 1) {
-				waitSpace.to(clientRoom).emit("redirect");
+		socket.on("start", () => {
+			storage(io, room).startCount += 1;
+			if (storage(io, room).startCount > 1) {
+				waitSpace.to(room).emit("redirect");
 			}
 		});
 
 		socket.on("disconnect", () => {
-			const userRoom = waitintPlayers[socket.id];
-			rooms[userRoom].startCount -= 1;
-			delete waitintPlayers[socket.id];
+			storage(io, room).startCount -= 1;
 		});
 	});
 
 	const gameSpace = io.of("/gameSpace");
 	gameSpace.on("connection", (socket) => {
 		logger.info("Connected to game");
-		const room = socket.handshake.query.userRoom;
+		const { room } = socket.handshake;
 		const gamePlay = new Game({
 			socket,
 		});
@@ -104,8 +120,8 @@ export default (app) => {
 
 		socket.on("message", (data) => {
 			if (
-				data.text === rooms[data.room].currentWord &&
-				rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
+				data.text === rooms[data.room].currentWord
+				&& rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
 			) {
 				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
 				rooms[data.room].points[rooms[data.room].users[socket.id]] += gamePlay.calculatePoints(data.time, data.room);
@@ -196,3 +212,41 @@ export default (app) => {
 
 	return io;
 };
+
+async function storage(io, roomId) {
+	return io.sockets.adapter.rooms[roomId].storage;
+}
+
+async function initStorage(io, roomId) {
+	const currStorage = {
+		roomId,
+		type: "PUB",
+		userCount: 0,
+		users: [],
+		roundNumber: 0,
+		turn: {
+			start: false,
+			timeStart: 0.0,
+			timeTotal: 0,
+		},
+		currentWord: "",
+		currentDrawer: "",
+		currentDrawerId: "",
+		points: {},
+		usersGuessed: 0,
+		usersGuessedName: [],
+		turnNumber: 0,
+		turnOn: false,
+		wordRevealInterval: false,
+		timeout: false,
+		cleared: false,
+		cache: {
+			indexes: [],
+			letters: [],
+		},
+		keys: [],
+		startCount: 0,
+	};
+
+	io.sockets.adapter.rooms[roomId].storage = currStorage;
+}

@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 
 import db from "./db";
+import { logger } from "../tools/loggers";
 
 const roomSchema = new mongoose.Schema(
 	{
 		roomId: { type: String, required: true, unique: true },
 		type: { type: String, required: true, default: " " },
 		userCount: { type: Number, default: 0 },
+		users: { type: Array, default: [] },
 		roundNumber: { type: Number, default: 0 },
 		turn: {
 			start: { type: Boolean, default: false },
@@ -28,7 +30,6 @@ const roomSchema = new mongoose.Schema(
 			indexes: { type: Array, default: [] },
 			letters: { type: Array, default: [] },
 		},
-		users: { type: Object, default: {} },
 		keys: { type: Array, default: [] },
 		startCount: { type: Number, default: 0 },
 	},
@@ -37,3 +38,16 @@ const roomSchema = new mongoose.Schema(
 
 const Room = db.model("Room", roomSchema);
 export default Room;
+
+export async function addUserToRoom(roomId, userInfo) {
+	const { username, socketId } = userInfo;
+
+	try {
+		const room = await Room.findOne({ roomId });
+		room.userCount += 1;
+		room.users.push(userInfo);
+	} catch (e) {
+		logger.info("addUser2Room Failed");
+		throw e;
+	}
+}

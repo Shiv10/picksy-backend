@@ -9,11 +9,13 @@ $(document).ready(() => {
 			return;
 		}
 
-		$.get("/game/getID", {
+		$.post("/game/getID", {
 			username: $("#username").val(),
 			createNew: false,
-		}, (data) => {
-			document.write(data);
+		}, (response) => {
+			if (response.success === true) {
+				window.location.replace(`/game/?roomId=${response.data.roomId}&username=${response.data.username}`);
+			}
 		});
 	});
 });
