@@ -21,72 +21,65 @@ import RoomStore from "../models/room.model";
 export default (app) => {
 	const io = socketio.listen(app);
 
-	const waitSpace = io.of("/waitSpace");
-	waitSpace.on("connection", async (socket) => {
+	const gameSpace = io.of("/gameSpace");
+	gameSpace.on("connection", (socket) => {
+		logger.info("Connected to game");
 		logger.info("User Connected to Waiting room!");
 
 		const { username, room } = socket.handshake.query;
-		await socket.join(room);
+		socket.join(room, () => {});
 
-		logger.info(JSON.stringify(socket.rooms));
-		logger.info(JSON.stringify(io.sockets.adapter.rooms));
-		if (!io.sockets.adapter.rooms[room].storage) {
+		if (!io.of("/gameSpace").adapter.rooms[room].storage) {
 			initStorage(io, room);
+			logger.info(JSON.stringify(io.of("/gameSpace").adapter.rooms[room].storage));
 		}
 
 		storage(io, room).users[socket.id] = username;
-		const allUsersInRoom = storage(io, room).storage.users.values();
+		const allUsersInRoom = storage(io, room).users.values();
 
-		waitSpace.to(room).emit("users-list", {
+		gameSpace.to(room).emit("users-list", {
 			users: allUsersInRoom,
 		});
 
 		if (storage(io, room).keys.length > 1) {
-			socket.emit("redirect");
+			socket.emit("redirect", { room, username });
 		}
 
 		socket.on("start", () => {
 			storage(io, room).startCount += 1;
 			if (storage(io, room).startCount > 1) {
-				waitSpace.to(room).emit("redirect");
+				gameSpace.to(room).emit("redirect", { room, username });
 			}
 		});
 
-		socket.on("disconnect", () => {
-			storage(io, room).startCount -= 1;
-		});
-	});
 
-	const gameSpace = io.of("/gameSpace");
-	gameSpace.on("connection", (socket) => {
-		logger.info("Connected to game");
-		const { room } = socket.handshake;
+
 		const gamePlay = new Game({
 			socket,
+			io,
 		});
-		socket.join(room);
 
 		socket.on("new user", (data) => {
 			logger.info("user connected");
 			gamePlay.initGame(data);
 
-			if (rooms[data.room].turnOn) {
+			if (storage(io, room).turnOn) {
 				gamePlay.previousDrawing(gameSpace, data.name, data.room);
-				gameSpace.to(rooms[data.room].currentDrawerId).emit("send-data");
+				gameSpace.to(storage(io, room).currentDrawerId).emit("send-data");
 			}
 
-			if (rooms[data.room].keys.length === 2) {
+			if (storage(io, room).keys.length === 2) {
 				gameSpace.to(data.room).emit("start-game");
-				rooms[data.room].turn.start = true;
+				storage(io, room).turn.start = true;
 				gamePlay.selectDrawer(gameSpace, data.room);
 			}
 
-			if (rooms[data.room].keys.length > 2) {
+			if (storage(io, room).keys.length > 2) {
 				socket.emit("start-game");
-				if (rooms[data.room].turnOn) {
+				if (storage(io, room).turnOn) {
 					socket.emit("word-selected", {
-						name: rooms[data.room].currentDrawer,
-						time: rooms[data.room].turn.timeStart,
+						name: storage(io, room).currentDrawer,
+						time: storage(io, room).turn.timeStart,
 					});
 				}
 			}
@@ -95,12 +88,12 @@ export default (app) => {
 		socket.on("word-selected", (data) => {
 			const timeStamp = new Date();
 			logger.info(data.word);
-			rooms[data.room].currentWord = data.word;
+			storage(io, room).currentWord = data.word;
 			const ct = Math.floor(timeStamp.getTime() / 1000);
-			rooms[data.room].turn.timeStart = ct;
-			gameSpace.to(data.room).emit("word-selected", { name: rooms[data.room].currentDrawer, time: ct });
-			rooms[data.room].turnOn = true;
-			rooms[data.room].timeout = setTimeout(
+			storage(io, room).turn.timeStart = ct;
+			gameSpace.to(data.room).emit("word-selected", { name: storage(io, room).currentDrawer, time: ct });
+			storage(io, room).turnOn = true;
+			storage(io, room).timeout = setTimeout(
 				() => {
 					gamePlay.turnChange(gameSpace, data.room);
 				},
@@ -108,29 +101,29 @@ export default (app) => {
 				gameSpace,
 				data.room,
 			);
-			const wordRevealTime = Math.floor(60 / Math.floor(rooms[data.room].currentWord.length / 2));
-			rooms[data.room].wordRevealInterval = setInterval(
+			const wordRevealTime = Math.floor(60 / Math.floor(storage(io, room).currentWord.length / 2));
+			storage(io, room).wordRevealInterval = setInterval(
 				gamePlay.revealLetter,
 				wordRevealTime * 1000,
 				gameSpace,
 				data.room,
 			);
-			rooms[data.room].cleared = false;
+			storage(io, room).cleared = false;
 		});
 
 		socket.on("message", (data) => {
 			if (
-				data.text === rooms[data.room].currentWord
-				&& rooms[data.room].users[socket.id] !== rooms[data.room].currentDrawer
+				data.text === storage(io, room).currentWord
+				&& storage(io, room).users[socket.id] !== storage(io, room).currentDrawer
 			) {
-				if (rooms[data.room].usersGuessedName.includes(rooms[data.room].users[socket.id])) return;
-				rooms[data.room].points[rooms[data.room].users[socket.id]] += gamePlay.calculatePoints(data.time, data.room);
-				rooms[data.room].usersGuessed += 1;
-				rooms[data.room].usersGuessedName.push(rooms[data.room].users[socket.id]);
-				gameSpace.to(data.room).emit("word-guessed", { name: rooms[data.room].users[socket.id] });
-				if (rooms[data.room].usersGuessed === rooms[data.room].userCount - 1) {
+				if (storage(io, room).usersGuessedName.includes(storage(io, room).users[socket.id])) return;
+				storage(io, room).points[storage(io, room).users[socket.id]] += gamePlay.calculatePoints(data.time, data.room);
+				storage(io, room).usersGuessed += 1;
+				storage(io, room).usersGuessedName.push(storage(io, room).users[socket.id]);
+				gameSpace.to(data.room).emit("word-guessed", { name: storage(io, room).users[socket.id] });
+				if (storage(io, room).usersGuessed === storage(io, room).userCount - 1) {
 					gameSpace.to(data.room).emit("next-turn");
-					clearTimeout(rooms[data.room].timeout);
+					clearTimeout(storage(io, room).timeout);
 					gamePlay.turnChange(gameSpace, data.room);
 				}
 			} else {
@@ -139,7 +132,7 @@ export default (app) => {
 					gameSpace.to(data.room).emit("similar-word", { text: data.text });
 				} else {
 					socket.to(data.room).broadcast.emit("message", {
-						name: rooms[data.room].users[socket.id],
+						name: storage(io, room).users[socket.id],
 						text: data.text,
 					});
 				}
@@ -171,29 +164,30 @@ export default (app) => {
 		});
 
 		socket.on("no-more-reveal", (data) => {
-			clearInterval(rooms[data.room].wordRevealInterval);
-			rooms[data.room].cache.indexes = [];
-			rooms[data.room].cache.letters = [];
-			rooms[data.room].cleared = true;
+			clearInterval(storage(io, room).wordRevealInterval);
+			storage(io, room).cache.indexes = [];
+			storage(io, room).cache.letters = [];
+			storage(io, room).cleared = true;
 		});
 
 		socket.on("disconnect", () => {
-			const userRoom = players[socket.id];
-			logger.info(`${rooms[userRoom].users[socket.id]} disconnected`);
-			if (rooms[userRoom].userCount <= 2) {
-				gamePlay.resetRoom(userRoom);
+			logger.info(`${storage(io, room).users[socket.id]} disconnected`);
+			if (storage(io, room).userCount <= 2) {
+				gamePlay.resetRoom(room);
 				logger.info("Room variable reset");
-				gameSpace.to(userRoom).emit("leave");
+				gameSpace.to(room).emit("leave");
 				return;
 			}
 			// delete[room.points[socket.id]]; Skribbl.io it doesn't remove user from scoreboard
 			// on disconnection, but we can add this functionality
-			rooms[userRoom].userCount -= 1;
-			if (rooms[userRoom].users[socket.id] === rooms[userRoom].currentDrawer && rooms[userRoom].userCount > 1) {
+			storage(io, room).userCount -= 1;
+			storage(io, room).startCount -= 1;
+
+			if (storage(io, room).users[socket.id] === storage(io, room).currentDrawer && storage(io, room).userCount > 1) {
 				logger.info("Drawer disconnected!");
-				gamePlay.drawerDisconnected(gameSpace, rooms[userRoom].timeout, userRoom);
+				gamePlay.drawerDisconnected(gameSpace, storage(io, room).timeout, room);
 			}
-			delete rooms[userRoom].users[socket.id];
+			delete storage(io, room).users[socket.id];
 		});
 	});
 
@@ -213,11 +207,11 @@ export default (app) => {
 	return io;
 };
 
-async function storage(io, roomId) {
-	return io.sockets.adapter.rooms[roomId].storage;
+function storage(io, roomId) {
+	return io.of("/gameSpace").adapter.rooms[roomId].storage;
 }
 
-async function initStorage(io, roomId) {
+function initStorage(io, roomId) {
 	const currStorage = {
 		roomId,
 		type: "PUB",
@@ -248,5 +242,5 @@ async function initStorage(io, roomId) {
 		startCount: 0,
 	};
 
-	io.sockets.adapter.rooms[roomId].storage = currStorage;
+	io.of("/gameSpace").adapter.rooms[roomId].storage = currStorage;
 }

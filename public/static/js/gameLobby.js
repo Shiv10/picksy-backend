@@ -7,7 +7,7 @@ $(document).ready(() => {
 
 	const param = `room=${roomId}&username=${username}`;
 
-	const socket = io(`${socketURL}/waitSpace`, { query: param });
+	const socket = io(`${socketURL}/gameSpace`, { query: param });
 	console.log(roomId, username);
 	let count = 0;
 
@@ -21,7 +21,8 @@ $(document).ready(() => {
 		console.log(userInfo.users);
 	});
 
-	socket.on("redirect", () => {
-		window.location.replace(`/game?${roomId}`);
+	socket.on("redirect", (data) => {
+		console.log(JSON.stringify(data));
+		window.location.replace(`/game/?room=${data.roomId}&username=${data.username}`);
 	});
 });

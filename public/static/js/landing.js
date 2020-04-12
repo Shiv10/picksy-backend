@@ -14,7 +14,7 @@ $(document).ready(() => {
 			createNew: false,
 		}, (response) => {
 			if (response.success === true) {
-				window.location.replace(`/game/?roomId=${response.data.roomId}&username=${response.data.username}`);
+				window.location.replace(`/game/lobby/?roomId=${response.data.roomId}&username=${response.data.username}`);
 			}
 		});
 	});

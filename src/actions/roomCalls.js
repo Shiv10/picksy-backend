@@ -20,14 +20,14 @@ export async function getPublicRoom() {
 }
 
 async function getMostFilledRoom() {
-	let { roomId } = await Room.findOne({ userCount: { $lt: 10 } }, { userCount: 1, roomId: 1 });
+	const roomInfo = await Room.findOne({ userCount: { $lt: 10 } }, { userCount: 1, roomId: 1 });
 
-	if (!roomId) {
+	if (!roomInfo.roomId) {
 		const newRoom = new Room();
-		roomId = `PUB:${shortid.generate()}`;
-		newRoom.roomId = roomId;
+		currRoomId = `PUB:${shortid.generate()}`;
+		newRoom.roomId = currRoomId;
 		newRoom.type = "PUB";
 		await newRoom.save();
 	}
-	return roomId;
+	return roomInfo.roomId;
 }
