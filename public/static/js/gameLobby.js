@@ -9,12 +9,9 @@ $(document).ready(() => {
 
 	const socket = io(`${socketURL}/gameSpace`, { query: param });
 	console.log(roomId, username);
-	let count = 0;
 
 	$("#enter-game").click((e) => {
-		if (count > 0) return;
 		socket.emit("start");
-		count += 1;
 	});
 
 	socket.on("users-list", (userInfo) => {
@@ -24,6 +21,19 @@ $(document).ready(() => {
 	socket.on("redirect", (data) => {
 		console.log(JSON.stringify(data));
 		console.log(`/game/?roomId=${data.room}&username=${data.username}`);
-		window.location.replace(`/game/?roomId=${data.room}&username=${data.username}`);
+		// window.location.replace(`/game/?roomId=${data.room}&username=${data.username}`);
+		$.get(
+			"/game",
+			{
+				roomId: data.room,
+				username: data.username,
+			},
+			(response) => {
+				if (response.success === true) {
+					console.log(html);
+					$("html").html(response.data);
+				}
+			},
+		);
 	});
 });

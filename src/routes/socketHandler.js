@@ -27,6 +27,7 @@ export default (app) => {
 		logger.info("User Connected to Waiting room!");
 
 		const { username, room } = socket.handshake.query;
+
 		socket.join(room, () => {});
 
 		// Check if the room object has been initialised and filled with default values

@@ -56,7 +56,11 @@ router.get("/lobby", async (req, res) => {
 router.get("/", async (req, res) => {
 	if (!req.query.roomId || !req.query.username) return res.redirect("/");
 	const { roomId, username } = req.query;
-	return res.render("game", { username, roomId });
+	const gamePage = await res.render("game", { username, roomId });
+	return res.json({
+		success: true,
+		data: gamePage,
+	});
 });
 
 export default router;
