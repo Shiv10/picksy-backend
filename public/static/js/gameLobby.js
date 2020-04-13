@@ -23,6 +23,7 @@ $(document).ready(() => {
 
 	socket.on("redirect", (data) => {
 		console.log(JSON.stringify(data));
-		window.location.replace(`/game/?room=${data.roomId}&username=${data.username}`);
+		console.log(`/game/?roomId=${data.room}&username=${data.username}`);
+		window.location.replace(`/game/?roomId=${data.room}&username=${data.username}`);
 	});
 });

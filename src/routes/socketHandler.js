@@ -29,6 +29,7 @@ export default (app) => {
 		const { username, room } = socket.handshake.query;
 		socket.join(room, () => {});
 
+		// Check if the room object has been initialised and filled with default values
 		if (!io.of("/gameSpace").adapter.rooms[room].storage) {
 			initStorage(io, room);
 			logger.info(JSON.stringify(io.of("/gameSpace").adapter.rooms[room].storage));
@@ -37,11 +38,12 @@ export default (app) => {
 		storage(io, room).users[socket.id] = username;
 		const allUsersInRoom = storage(io, room).users.values();
 
+		// Send list of current users in a room to gameLobby
 		gameSpace.to(room).emit("users-list", {
 			users: allUsersInRoom,
 		});
 
-		if (storage(io, room).keys.length > 1) {
+		if (storage(io, room).keys.length >= 2) {
 			socket.emit("redirect", { room, username });
 		}
 
@@ -51,8 +53,6 @@ export default (app) => {
 				gameSpace.to(room).emit("redirect", { room, username });
 			}
 		});
-
-
 
 		const gamePlay = new Game({
 			socket,
@@ -113,8 +113,8 @@ export default (app) => {
 
 		socket.on("message", (data) => {
 			if (
-				data.text === storage(io, room).currentWord
-				&& storage(io, room).users[socket.id] !== storage(io, room).currentDrawer
+				data.text === storage(io, room).currentWord &&
+				storage(io, room).users[socket.id] !== storage(io, room).currentDrawer
 			) {
 				if (storage(io, room).usersGuessedName.includes(storage(io, room).users[socket.id])) return;
 				storage(io, room).points[storage(io, room).users[socket.id]] += gamePlay.calculatePoints(data.time, data.room);
@@ -172,16 +172,16 @@ export default (app) => {
 
 		socket.on("disconnect", () => {
 			logger.info(`${storage(io, room).users[socket.id]} disconnected`);
+
 			if (storage(io, room).userCount <= 2) {
 				gamePlay.resetRoom(room);
 				logger.info("Room variable reset");
 				gameSpace.to(room).emit("leave");
-				return;
 			}
-			// delete[room.points[socket.id]]; Skribbl.io it doesn't remove user from scoreboard
-			// on disconnection, but we can add this functionality
 			storage(io, room).userCount -= 1;
 			storage(io, room).startCount -= 1;
+			// delete[room.points[socket.id]]; Skribbl.io it doesn't remove user from scoreboard
+			// on disconnection, but we can add this functionality
 
 			if (storage(io, room).users[socket.id] === storage(io, room).currentDrawer && storage(io, room).userCount > 1) {
 				logger.info("Drawer disconnected!");
@@ -189,19 +189,6 @@ export default (app) => {
 			}
 			delete storage(io, room).users[socket.id];
 		});
-	});
-
-	const nsp = io.of("/room-data");
-	nsp.on("connection", (socket) => {
-		const room = new Room({
-			socket,
-			rooms,
-		});
-
-		logger.info("Client Connected");
-		const playersInRooms = room.getRoomInfo();
-		const roomList = Object.keys(rooms);
-		socket.emit("info", { playersInRooms, roomList });
 	});
 
 	return io;
@@ -212,9 +199,10 @@ function storage(io, roomId) {
 }
 
 function initStorage(io, roomId) {
+	// TODO: Add a try catch block to prevent creation of rooms with id as undefined
 	const currStorage = {
 		roomId,
-		type: "PUB",
+		type: roomId.slice(0, 3),
 		userCount: 0,
 		users: [],
 		roundNumber: 0,

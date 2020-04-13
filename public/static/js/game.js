@@ -17,15 +17,15 @@ window.addEventListener("load", () => {
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
 
-	const messageCon = $("#message-container").val();
-	const btn = $("#send-button").val();
-	const msg = $("#message-input").val();
-	const undoBtn = $("#undo").val();
-	const saveBtn = $("#save").val();
+	const messageCon = document.getElementById("message-container");
+	const btn = document.getElementById("send-button");
+	const msg = document.getElementById("message-input");
+	const undoBtn = document.getElementById("undo");
+	const saveBtn = document.getElementById("save");
 	let canDraw = false;
-	const wordCon = $("#word-reveal").val();
-	const fillBtn = $("#fill").val();
-	const selectedColor = $("#colorPicker").val();
+	const wordCon = document.getElementById("word-reveal");
+	const fillBtn = document.getElementById("fill");
+	const selectedColor = document.getElementById("colorPicker");
 	let fill = false;
 	let saveData;
 	let undoStackDrawer = [];
